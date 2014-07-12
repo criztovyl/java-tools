@@ -1,0 +1,10 @@
+You need Log4J and CommonsIO for this project, they can be downloaded from the Apache page here:
+
+http://logging.apache.org/log4j/2.x/download.html
+
+and here
+
+http://commons.apache.org/proper/commons-io/download_io.cgi
+
+
+You esp. need log4j-api-2.0-rc2.jar and log4j-core-2.0-rc2.jar from the log4j archive and commons-io-2.4.jar from the CommonsIO archive.
