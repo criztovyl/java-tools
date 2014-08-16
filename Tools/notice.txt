@@ -1,4 +1,4 @@
-You need Log4J and CommonsIO for this project, they can be downloaded from the Apache page here:
+If you developing with this application, you need Log4J and CommonsIO for this project, you can download them from the Apache page here:
 
 http://logging.apache.org/log4j/2.x/download.html
 

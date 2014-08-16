@@ -22,6 +22,7 @@ import java.util.ResourceBundle;
 
 /**
  * Represents a class that reads strings from a properties file
+ * 
  * @author criztovyl
  * 
  */
@@ -31,27 +32,32 @@ public class Strings {
 
 	/**
 	 * Creates a new strings object
-	 * @param bundleName the name to the properties file
+	 * 
+	 * @param bundleName
+	 *            the name to the properties file
 	 */
 	public Strings(String bundleName) {
-		
-		//Set bundle
+
+		// Set bundle
 		resourceBundle = ResourceBundle.getBundle(bundleName);
 	}
 
 	/**
 	 * Receives the key from the properties file and formats it if possible
-	 * @param key the string key
-	 * @param args the arguments for {@link String#format(String, Object...)}
+	 * 
+	 * @param key
+	 *            the string key
+	 * @param args
+	 *            the arguments for {@link String#format(String, Object...)}
 	 * @return a formatted string
 	 */
 	public String getString(String key, Object... args) {
-		
+
 		try {
-			//Return formatted string
+			// Return formatted string
 			return String.format(resourceBundle.getString(key), args);
 		} catch (final MissingResourceException e) {
-			//Return string key
+			// Return string key
 			return '!' + key + '!';
 		}
 	}

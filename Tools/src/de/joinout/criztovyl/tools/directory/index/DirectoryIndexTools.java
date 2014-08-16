@@ -23,25 +23,28 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.joinout.criztovyl.tools.file.Path;
+
 /**
  * A class for doing thing with directory indexes
+ * 
  * @author criztovyl
- *
+ * 
  */
 public class DirectoryIndexTools {
-	
-	private String separator, regex;
-	
+
+	private final String separator, regex;
+
 	/**
 	 * Creates a new class with the given separator and regular expression.
+	 * 
 	 * @param separator
 	 * @param regex
 	 */
-	public DirectoryIndexTools(String separator, String regex){
+	public DirectoryIndexTools(String separator, String regex) {
 		this.separator = separator;
 		this.regex = regex;
 	}
-	
+
 	/**
 	 * Creates a list of directory indexes from a list of paths.
 	 * 
@@ -50,15 +53,15 @@ public class DirectoryIndexTools {
 	 * @return the list of the directory indexes
 	 */
 	public ArrayList<DirectoryIndex> indexFromPathList(ArrayList<String> paths) {
-		
-		//Get logger
-		Logger logger = LogManager.getLogger();
+
+		// Get logger
+		final Logger logger = LogManager.getLogger();
 
 		if (logger.isTraceEnabled())
 			logger.trace("Setting up DiretoryIndexes from a path list...");
 
 		// Create list for indexes been created
-		final ArrayList<DirectoryIndex> indexes = new ArrayList<DirectoryIndex>();
+		final ArrayList<DirectoryIndex> indexes = new ArrayList<>();
 
 		if (logger.isTraceEnabled())
 			logger.trace("Iterating over paths...");
@@ -83,7 +86,7 @@ public class DirectoryIndexTools {
 
 			if (logger.isWarnEnabled())
 				logger.warn("No such file or directory '{}'!", path);
-		
+
 		// return indexes
 		return indexes;
 	}

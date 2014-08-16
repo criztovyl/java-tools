@@ -21,14 +21,14 @@ import de.joinout.criztovyl.tools.file.Path;
 
 /**
  * A Class that sets up a Log4J environment
+ * 
  * @author criztovyl
- *
+ * 
  */
 public class Log4JEnvironment {
-	
-	
+
 	public static final String USER_DIR = "user.home";
-	
+
 	public static final String SYSPROP_KEY = "log4j.configurationFile";
 
 	public static final String DIR = ".log4j";
@@ -38,75 +38,103 @@ public class Log4JEnvironment {
 	public static final String VERBOSE_FILE = "log4j2-test.xml";
 
 	public static final String SWITCH_FILE = "test.rc";
-	
+
 	public static final String NOCFG_FILE = "disable.rc";
-	
-	private Path configFile, silent, verbose, switchP, disable;
-	
-	public Log4JEnvironment(){
-		this(new Path(USER_DIR, true).append(DIR), SILENT_FILE, VERBOSE_FILE, SWITCH_FILE, NOCFG_FILE);
+
+	private Path configFile;
+
+	private final Path silent;
+
+	private final Path verbose;
+
+	private final Path switchP;
+
+	private final Path disable;
+
+	public Log4JEnvironment() {
+		this(new Path(Log4JEnvironment.USER_DIR, true)
+				.append(Log4JEnvironment.DIR), Log4JEnvironment.SILENT_FILE,
+				Log4JEnvironment.VERBOSE_FILE, Log4JEnvironment.SWITCH_FILE,
+				Log4JEnvironment.NOCFG_FILE);
 	}
+
 	/**
 	 * Sets up the Log4J environment
-	 * @param configDir the path for the configuration directory
-	 * @param silentName the path for the configuration file for less logging output 
-	 * @param verboseName the path for the configuration file for verbose logging output
-	 * @param switchName the path for the file that enables the verbose logging output if it exists.
-	 * @param noCfgName the path for the file that disable all manual configuration if it exists.
+	 * 
+	 * @param configDir
+	 *            the path for the configuration directory
+	 * @param silentName
+	 *            the path for the configuration file for less logging output
+	 * @param verboseName
+	 *            the path for the configuration file for verbose logging output
+	 * @param switchName
+	 *            the path for the file that enables the verbose logging output
+	 *            if it exists.
+	 * @param noCfgName
+	 *            the path for the file that disable all manual configuration if
+	 *            it exists.
 	 */
-	public Log4JEnvironment(Path configDir, String silentName, String verboseName, String switchName, String noCfgName){
+	public Log4JEnvironment(Path configDir, String silentName,
+			String verboseName, String switchName, String noCfgName) {
 
-		//Set up paths
+		// Set up paths
 		silent = configDir.append(silentName);
 		verbose = configDir.append(verboseName);
 		switchP = configDir.append(switchName);
 		disable = configDir.append(noCfgName);
 		configFile = null;
 
-		//No environment when disable file exists
-		if(!disable.getFile().exists()){
-			
-			//Load test configuration only when present and if test.rc exists 
-			if(configDir.getFile().exists() && verbose.getFile().exists())
+		// No environment when disable file exists
+		if (!disable.getFile().exists()) {
+
+			// Load test configuration only when present and if test.rc exists
+			if (configDir.getFile().exists() && verbose.getFile().exists())
 				configFile = verbose;
 
-			//Load silent/normal configuration only when present and if test.rc does _not_ exists
-			if(!switchP.getFile().exists() && silent.getFile().exists())
+			// Load silent/normal configuration only when present and if test.rc
+			// does _not_ exists
+			if (!switchP.getFile().exists() && silent.getFile().exists())
 				configFile = silent;
 		}
-		
-		if(configFile != null)
-			System.setProperty(SYSPROP_KEY, configFile.getFile().getPath());
+
+		if (configFile != null)
+			System.setProperty(Log4JEnvironment.SYSPROP_KEY, configFile
+					.getFile().getPath());
 	}
+
 	/**
 	 * 
 	 * @return the configuration file set by this object, may be null
 	 */
-	public Path getConfigFile(){
+	public Path getConfigFile() {
 		return configFile;
 	}
+
+	/**
+	 * @return the disable
+	 */
+	public Path getDisable() {
+		return disable;
+	}
+
 	/**
 	 * @return the silent
 	 */
 	public Path getSilent() {
 		return silent;
 	}
-	/**
-	 * @return the verbose
-	 */
-	public Path getVerbose() {
-		return verbose;
-	}
+
 	/**
 	 * @return the switchP
 	 */
 	public Path getSwitchP() {
 		return switchP;
 	}
+
 	/**
-	 * @return the disable
+	 * @return the verbose
 	 */
-	public Path getDisable() {
-		return disable;
+	public Path getVerbose() {
+		return verbose;
 	}
 }

@@ -19,49 +19,103 @@ package de.joinout.criztovyl.tools.file.version;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.TreeSet;
+
+import org.json.JSONArray;
 
 import de.joinout.criztovyl.tools.file.Path;
+import de.joinout.criztovyl.tools.json.JSONCalendar;
+import de.joinout.criztovyl.tools.json.iterator.JSONLongArrayIterator;
 
 /**
- * This class represents a {@link Path} of a file with the deletion dates and versions.
+ * This class represents a {@link Path} of a file with the deletion dates and
+ * versions.
+ * 
  * @author criztovyl
- *
+ * 
  */
 public class VersionInfo extends ArrayList<Calendar>{
-	
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -7239583617711281110L;
+
 	/**
-	 * Creates a new wasted path on the given path string with the given separator.
+	 * Creates a new empty version info.
 	 */
-	public VersionInfo(){
-		
+	public VersionInfo() {
+
+		//Setup list
 		super();
-		 
+
 	}
+	
 	/**
-	 * Appends the given version to the given path
-	 * @param date the date for the version
-	 * @param path the path
-	 * @return the path of the given version
+	 * Creates a new  version info from JSON data.
+	 * @param json the json data
 	 */
-	public Path appendVersion(Path path, Calendar date){
-		return path.addSuffix(Long.toString(date.getTimeInMillis()));
+	public VersionInfo(JSONArray json){
+		
+		TreeSet<Calendar> set = new TreeSet<>();
+		
+		for(Long lonq : new JSONLongArrayIterator(json))
+			set.add(new JSONCalendar(lonq).getCalendar());
+		
+		this.addAll(set);
+		
+		
 	}
+
 	/**
 	 * Appends the latest version to the given path
-	 * @param path the path
+	 * 
+	 * @param path
+	 *            the path
 	 * @return the path of the latest version
 	 */
-	public Path appendLatestVersion(Path path){
-		return appendVersion(path, get(size() >= 1 ? size()-1 : 0));
+	public Path appendLatestVersion(Path path) {
+		return appendVersion(path, get(size() >= 1 ? size() - 1 : 0));
 	}
-	/**S
-	 * @return a {@link Calendar} for the version if there is any, otherwise {@code null}
+
+	/**
+	 * Appends the given version to the given path
+	 * 
+	 * @param date
+	 *            the date for the version
+	 * @param path
+	 *            the path
+	 * @return the path of the given version
 	 */
-	public Calendar getLatestVersion(){
-		return size() >= 1 ? get(size()-1) : null;
+	public Path appendVersion(Path path, Calendar date) {
+		return path.addSuffix(Long.toString(date.getTimeInMillis()));
+	}
+
+	/**
+	 * 
+	 * @return a {@link Calendar} for the version if there is any, otherwise
+	 *         {@code null}
+	 */
+	public Calendar getLatestVersion() {
+		return size() >= 1 ? get(size() - 1) : null;
+	}
+	
+	/**
+	 * Creates a JSON array of this object.
+	 * @return a {@link JSONArray}
+	 */
+	public JSONArray getJSON(){
+		
+		//Create array
+		JSONArray json = new JSONArray();
+
+		//Iterate over elements
+		for(Calendar cal : this)
+			
+			//Store
+			json.put(new JSONCalendar(cal).getJSON());
+		
+		//Tada!
+		return json;
 	}
 }

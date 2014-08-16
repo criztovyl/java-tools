@@ -15,42 +15,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.joinout.criztovyl.tools.files;
+package de.joinout.criztovyl.tools.json.iterator;
 
-import java.util.ArrayList;
-
-import de.joinout.criztovyl.tools.file.Path;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
- * This class represents a directory.
+ * A class for iterating over an {@link JSONArray} with {@link JSONObject}s.
  * @author criztovyl
  *
  */
-public class Directory {
-	
-	private Path path;
+public class JSONObjectArrayIterator extends JSONArrayIterator<JSONObject> {
 
-	public Directory(Path path){
-		
-		this.path = path;
-		
-	}
 	/**
-	 * 
-	 * @return a list of paths of the contents
+	 * Creates a new iterator for a {@link JSONArray} with {@link JSONObject}s.
+	 * @param array the {@link JSONArray}
 	 */
-	public ArrayList<Path> getContents(){
-		
-		//Create new list
-		ArrayList<Path> list = new ArrayList<>();
-		
-		//Iterate of file list array, append to path and add to list
-		for(String file : path.getFile().list())
-			list.add(path.append(file));
-		
-		//Return list
-		return list;
-		
+	public JSONObjectArrayIterator(JSONArray array) {
+		super(array);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see de.joinout.criztovyl.tools.json.iterator.JSONArrayIterator#next()
+	 */
+	@Override
+	public JSONObject next() {
+		return getArray().getJSONObject(getIndex());
+	}
+
 }
