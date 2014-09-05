@@ -24,68 +24,82 @@ import org.json.JSONArray;
 /**
  * A abstract class for iterating over {@link JSONArray}s.<br>
  * You only have to define wich JSONArray#get you want to use.<br>
- * Array is available via {@link #getArray()} and index via {@link #getIndex()}.<br>
+ * Array is available via {@link #getArray()} and index via {@link #index()}.<br>
  * As example with strings #next() would be:<br>
- * <pre><code>
+ * 
+ * <pre>
+ * <code>
  * public String next(){
  *     return getArray().getString(getIndex());
  * }
- * </code></pre>
+ * </code>
+ * </pre>
  * 
  * @author criztovyl
- *
+ * 
  */
-public abstract class JSONArrayIterator<T> implements Iterator<T>, Iterable<T>{
-	
+public abstract class JSONArrayIterator<T> implements Iterator<T>, Iterable<T> {
+
 	private int curr_index;
-	private JSONArray array;
-	
+	private final JSONArray array;
+
 	/**
 	 * Creates a new iterator on the given JSON array
+	 * 
 	 * @param array
 	 */
-	public JSONArrayIterator(JSONArray array){
+	public JSONArrayIterator(JSONArray array) {
 		this.array = array;
 		this.curr_index = 0;
 	}
-	
-	/* (non-Javadoc)
+
+	/**
+	 * @return the {@link JSONArray}
+	 */
+	protected JSONArray getArray() {
+		return array;
+	}
+
+	/**
+	 * @return the current index of the iterator
+	 */
+	protected int index() {
+		return curr_index++;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.util.Iterator#hasNext()
 	 */
 	public boolean hasNext() {
 		return curr_index < array.length();
 	}
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Iterator#next()
-	 */
-	 public abstract T next();
 
-	/* (non-Javadoc)
-	 * @see java.util.Iterator#remove()
-	 */
-	public void remove() {
-		getArray().remove(getIndex());
-		
-	}
-	/**
-	 * @return the current index of the iterator
-	 */
-	protected int getIndex(){
-		return curr_index;
-	}
-	/**
-	 * @return the {@link JSONArray}
-	 */
-	protected JSONArray getArray(){
-		return array;
-	}
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Iterable#iterator()
 	 */
 	public Iterator<T> iterator() {
 		return this;
 	}
-	
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.Iterator#next()
+	 */
+	public abstract T next();
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.Iterator#remove()
+	 */
+	public void remove() {
+		getArray().remove(index());
+
+	}
+
 }

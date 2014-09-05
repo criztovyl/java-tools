@@ -21,25 +21,30 @@ import org.json.JSONArray;
 
 /**
  * A class for iterating over a {@link JSONArray} with {@link Long}s.
+ * 
  * @author criztovyl
- *
+ * 
  */
-public class JSONLongArrayIterator extends JSONArrayIterator<Long>{
+public class JSONLongArrayIterator extends JSONArrayIterator<Long> {
 
 	/**
 	 * Creates a new iterator for a {@link JSONArray} with {@link Long}s.
-	 * @param array the {@link JSONArray}
+	 * 
+	 * @param array
+	 *            the {@link JSONArray}
 	 */
 	public JSONLongArrayIterator(JSONArray array) {
 		super(array);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.joinout.criztovyl.tools.json.iterator.JSONArrayIterator#next()
 	 */
 	@Override
 	public Long next() {
-		return getArray().getLong(getIndex());
+		return getArray().getLong(index());
 	}
-	
+
 }

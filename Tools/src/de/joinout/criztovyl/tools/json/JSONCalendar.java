@@ -23,77 +23,76 @@ import org.json.JSONObject;
 
 /**
  * @author criztovyl
- *
+ * 
  */
-public class JSONCalendar {
+public class JSONCalendar{
 
 	public static final String JSON_EPOCH_MILLIS = "epochMillis";
 
-	private Calendar calendar;
+	private final Calendar calendar;
 
 	private JSONObject json;
 
 	/**
-	 * Creates a new JsonCalendar from a {@link Calendar}. 
-	 * @param calendar the calendar
+	 * Creates a new JsonCalendar from a {@link Calendar}.
+	 * 
+	 * @param calendar
+	 *            the calendar
 	 */
-	public JSONCalendar(Calendar calendar){
+	public JSONCalendar(Calendar calendar) {
 		this.calendar = calendar;
 
 		createJson();
 	}
 
 	/**
-	 * Creates a new JsonCalendar from a {@link Long}
-	 * @param lonq the long
+	 * Creates a new JsonCalendar from a JSON object.
+	 * 
+	 * @param json
+	 *            the JSON object,
 	 */
-	public JSONCalendar(Long lonq){
+	public JSONCalendar(JSONObject json) {
 
-		//Create calendar and clear
-		this.calendar = Calendar.getInstance();
+		// Create calendar and clear
+		calendar = Calendar.getInstance();
 		calendar.clear();
 
-		//Set
+		// Receive
+		calendar.setTimeInMillis(json.getLong(JSONCalendar.JSON_EPOCH_MILLIS));
+
+		// Create JSON
+		createJson();
+	}
+
+	/**
+	 * Creates a new JsonCalendar from a {@link Long}
+	 * 
+	 * @param lonq
+	 *            the long
+	 */
+	public JSONCalendar(Long lonq) {
+
+		// Create calendar and clear
+		calendar = Calendar.getInstance();
+		calendar.clear();
+
+		// Set
 		calendar.setTimeInMillis(lonq);
 
-		//Create JSON
+		// Create JSON
 		createJson();
-	}
-	/**
-	 * Creates a new JsonCalendar from a JSON object.
-	 * @param json the JSON object,
-	 */
-	public JSONCalendar(JSONObject json){
-
-		//Create calendar and clear
-		this.calendar = Calendar.getInstance();
-		calendar.clear();
-
-		//Receive
-		calendar.setTimeInMillis(json.getLong(JSON_EPOCH_MILLIS));
-
-		//Create JSON
-		createJson();
-	}
-
-	/**
-	 * Time will be stored as milliseconds since epoch.
-	 * @return the calendar as a JSON object.
-	 */
-	public JSONObject getJSON(){
-		return json;
 	}
 
 	/**
 	 * Creates the JSON Object
 	 */
-	private void createJson(){
+	private void createJson() {
 
-		//Create object
+		// Create object
 		json = new JSONObject();
 
-		//Store
-		json.put(JSON_EPOCH_MILLIS, calendar.getTimeInMillis());
+		// Store
+		json.put(JSONCalendar.JSON_EPOCH_MILLIS, calendar.getTimeInMillis());
 
 	}
 
@@ -101,8 +100,17 @@ public class JSONCalendar {
 	 * 
 	 * @return the calendar
 	 */
-	public Calendar getCalendar(){
+	public Calendar getCalendar() {
 		return calendar;
+	}
+
+	/**
+	 * Time will be stored as milliseconds since epoch.
+	 * 
+	 * @return the calendar as a JSON object.
+	 */
+	public JSONObject getJSON() {
+		return json;
 	}
 
 }

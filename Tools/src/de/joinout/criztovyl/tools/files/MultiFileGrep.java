@@ -30,38 +30,35 @@ import de.joinout.criztovyl.tools.file.Path;
 
 /**
  * @author criztovyl
- *
+ * 
  */
 public class MultiFileGrep {
 
-	private Logger logger;
-	
-	public MultiFileGrep(String regex, List<Path> paths){
-		
+	private final Logger logger;
+
+	public MultiFileGrep(String regex, List<Path> paths) {
+
 		logger = LogManager.getLogger();
 
-		for(Path file : paths){
+		for (final Path file : paths) {
 			System.out.println(file);
 			System.out.println();
-			try{
-				for(String line : FileUtils.readLines(file.getFile())){
-					if(line.matches(regex))
+			try {
+				for (final String line : FileUtils.readLines(file.getFile()))
+					if (line.matches(regex))
 						System.out.println(line);
-				}
-			} catch(FileNotFoundException e){
+			} catch (final FileNotFoundException e) {
 				logger.warn("File {} not found!", file);
 				logger.debug(e);
-			} catch(IOException e){
+			} catch (final IOException e) {
 				logger.error("IOException!", e);
 			}
 			System.out.println();
 		}
 	}
 
-	public MultiFileGrep(String regex, Path ...paths){
+	public MultiFileGrep(String regex, Path... paths) {
 		this(regex, Arrays.asList(paths));
 	}
-
-
 
 }

@@ -21,27 +21,30 @@ import org.json.JSONArray;
 
 /**
  * A class for iterating over an {@link JSONArray} with {@link String}s.
+ * 
  * @author criztovyl
- *
+ * 
  */
-public class JSONStringArrayIterator extends JSONArrayIterator<String>{
+public class JSONStringArrayIterator extends JSONArrayIterator<String> {
 
 	/**
 	 * Creates a new iterator for a {@link JSONArray} with {@link String}s.
-	 * @param array the {@link JSONArray}
+	 * 
+	 * @param array
+	 *            the {@link JSONArray}
 	 */
 	public JSONStringArrayIterator(JSONArray array) {
 		super(array);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.joinout.criztovyl.tools.json.iterator.JSONArrayIterator#next()
 	 */
 	@Override
 	public String next() {
-		return getArray().getString(getIndex());
+		return getArray().getString(index());
 	}
-	
-	
 
 }

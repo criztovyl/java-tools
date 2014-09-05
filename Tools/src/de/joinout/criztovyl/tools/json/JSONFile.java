@@ -31,107 +31,140 @@ import org.json.JSONObject;
 import de.joinout.criztovyl.tools.file.Path;
 
 /**
- * This class represents a file that can contain JSON data and helps read and write it.
+ * This class represents a file that can contain JSON data and helps read and
+ * write it.
+ * 
  * @author criztovyl
- *
+ * 
  */
-public class JSONFile{
-	
-	private Path path;
-	
-	private Logger logger;
-	
+public class JSONFile {
+
+	private final Path path;
+
+	private final Logger logger;
+
 	private String data;
-	
+
 	/**
 	 * Loads JSON data from the given file
+	 * 
 	 * @param path
 	 */
-	public JSONFile(Path path){
-		
+	public JSONFile(Path path) {
+
 		logger = LogManager.getLogger();
-		
+
 		this.path = path;
-		
+
+		data = new JSONObject().toString();
+
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(path.getFile()));
-			
-			String str, data = "";
-			
-			while( (str = br.readLine()) != null)
+			final BufferedReader br = new BufferedReader(new FileReader(
+					path.getFile()));
+
+			String str = "";
+			String data = "";
+
+			while ((str = br.readLine()) != null)
 				data += str;
-			
+
 			br.close();
-			
-			this.data = data;
-		} catch (FileNotFoundException e) {
+
+			if (!data.equals(""))
+				this.data = data;
+
+		} catch (final FileNotFoundException e) {
 			logger.catching(e);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			logger.catching(e);
 		}
-			
-	}
-	/**
-	 * Loads the JSON data from the {@link JSONObject}.
-	 * @param path the path to the JSON file
-	 * @param json the JSON object
-	 */
-	public JSONFile(Path path, JSONObject json){
 
-		logger = LogManager.getLogger();
-		
-		this.path = path;
-		data = json.toString();
 	}
+
 	/**
 	 * Loads the JSON data from the {@link JSONArray}.
-	 * @param path the path to the JSON file
-	 * @param json the JSON object
+	 * 
+	 * @param path
+	 *            the path to the JSON file
+	 * @param json
+	 *            the JSON object
 	 */
-	public JSONFile(Path path, JSONArray json){
+	public JSONFile(Path path, JSONArray json) {
 
 		logger = LogManager.getLogger();
-		
+
 		this.path = path;
 		data = json.toString();
 	}
+
+	/**
+	 * Loads the JSON data from the {@link JSONObject}.
+	 * 
+	 * @param path
+	 *            the path to the JSON file
+	 * @param json
+	 *            the JSON object
+	 */
+	public JSONFile(Path path, JSONObject json) {
+
+		logger = LogManager.getLogger();
+
+		this.path = path;
+		data = json.toString();
+	}
+
 	/**
 	 * 
 	 * @return the raw JSON data string
 	 */
-	public String getData(){
+	public String getData() {
 		return data;
 	}
+
 	/**
 	 * 
 	 * @return the {@link JSONObject} represented by the given data.
 	 */
-	public JSONObject getJSONObject(){
-		return new JSONObject(data);
-	}
-	/**
-	 * 
-	 * @return the {@link JSONObject} represented by the given data.
-	 */
-	public JSONArray getJSONArray(){
+	public JSONArray getJSONArray() {
 		return new JSONArray(data);
 	}
+
+	/**
+	 * 
+	 * @return the {@link JSONObject} represented by the given data.
+	 */
+	public JSONObject getJSONObject() {
+		final JSONObject json = new JSONObject(data);
+
+		return json;
+	}
+
+	public Runnable runnableWrite() {
+		return new Runnable() {
+
+			public void run() {
+				write();
+
+			}
+		};
+	}
+
 	/**
 	 * Writes the JSON data to the file.
 	 */
-	public void write(){
-		
+	public void write() {
+
 		try {
-			FileWriter fw = new FileWriter(path.getFile());
-			
+			final FileWriter fw = new FileWriter(path.getFile());
+
 			fw.write(data);
-			
+
 			fw.flush();
 			fw.close();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			logger.catching(e);
 		}
-		
+
 	}
-	
+
 }

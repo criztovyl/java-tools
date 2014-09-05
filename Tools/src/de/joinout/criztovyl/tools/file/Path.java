@@ -18,6 +18,7 @@
 package de.joinout.criztovyl.tools.file;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.json.JSONObject;
 
@@ -27,13 +28,40 @@ import org.json.JSONObject;
  * @author criztovyl
  * 
  */
-public class Path implements Comparable<Path> {
-	
+public class Path implements Comparable<Path>{
+
 	private static final String JSON_PATH = "path";
-	
+
 	private static final String JSON_SEPARATOR = "seperator";
 
-	private final String path, separator;
+	protected String path;
+
+	protected String separator;
+
+	/**
+	 * Creates a new path from a JSON object
+	 * 
+	 * @param json
+	 *            the JSON object
+	 */
+	public Path(JSONObject json) {
+
+		path = json.getString(Path.JSON_PATH);
+		separator = json.getString(Path.JSON_SEPARATOR);
+
+	}
+
+	/**
+	 * Creates a new copy of a path
+	 * 
+	 * @param path
+	 */
+	public Path(Path path) {
+
+		this.path = path.path;
+		separator = path.separator;
+
+	}
 
 	/**
 	 * Creates a new path with {@link File#separator} as separator.
@@ -96,28 +124,6 @@ public class Path implements Comparable<Path> {
 	public Path(String path, String separator) {
 		this(path, false, separator);
 	}
-	
-	/**
-	 * Creates a new copy of a path
-	 * @param path
-	 */
-	public Path(Path path){
-		
-		this.path = path.path;
-		this.separator = path.separator;
-		
-	}
-	
-	/**
-	 * Creates a new path from a JSON object
-	 * @param json the JSON object
-	 */
-	public Path(JSONObject json){
-		
-		this.path = json.getString(JSON_PATH);
-		this.separator = json.getString(JSON_SEPARATOR);
-		
-	}
 
 	/**
 	 * Creates a new Path with the given suffix from this path, will be appended
@@ -165,15 +171,33 @@ public class Path implements Comparable<Path> {
 		return getPath().compareTo(o.getPath());
 	}
 
-	/**
-	 * Checks if this path is equal to another path
-	 * 
-	 * @param o
-	 *            the other path
-	 * @return true if the paths are equal, otherwise false
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
-	public boolean equals(Path o) {
-		return getPath(o.getSeparator()).equals(o.getPath());
+	public boolean equals(Object anObject) {
+		
+		if(this == anObject)
+			return true;
+		
+		//Check if is Path
+		if(anObject instanceof Path){
+			
+			//Cast
+			Path aPath = (Path) anObject;
+			
+			//Check if path string is equal
+			return getPath(aPath.getSeparator()).equals(aPath.getPath());
+		}
+		//Check if is string
+		else if (anObject instanceof String){
+			
+			//Check if path string is equal to string
+			return getPath().equals((String) anObject);
+		}
+		else
+			return false;
+		
 	}
 
 	/**
@@ -193,6 +217,22 @@ public class Path implements Comparable<Path> {
 	 */
 	public File getFile() {
 		return new File(getPath(File.separator));
+	}
+
+	/**
+	 * Creates a JSON object
+	 * 
+	 * @return the JSON data of this object
+	 */
+	public JSONObject getJSON() {
+
+		final JSONObject json = new JSONObject();
+
+		json.put(Path.JSON_PATH, path);
+
+		json.put(Path.JSON_SEPARATOR, separator);
+
+		return json;
 	}
 
 	/**
@@ -240,6 +280,14 @@ public class Path implements Comparable<Path> {
 		// (the dot of the suffix)
 		return getPath().replaceAll("^.*\\.", "");
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	public int hashCode(){
+		return getPath().hashCode();
+	}
 
 	/**
 	 * Checks if this path is inside of a directory
@@ -266,7 +314,8 @@ public class Path implements Comparable<Path> {
 	}
 
 	/**
-	 * Creates a new path relative to a specified directory
+	 * Creates a new path relative to a specified directory.<br>
+	 * May the path will not made relative, if path is not inside the given directory.
 	 * 
 	 * @param dir
 	 *            the directory
@@ -274,8 +323,8 @@ public class Path implements Comparable<Path> {
 	 */
 	public Path relativeTo(Path dir) {
 		return new Path(getPath(dir.getSeparator()).replaceAll(
-				"^" + dir.getPath(), "").replaceAll("^" + dir.getSeparator(),
-						""));
+				"^" + dir.getPath(), ".").replaceAll("^" + dir.getSeparator(),
+				""));
 	}
 
 	/**
@@ -303,17 +352,11 @@ public class Path implements Comparable<Path> {
 	}
 	
 	/**
-	 * Creates a JSON object
-	 * @return the JSON data of this object
+	 * Creates the real path of this path. Mainly resolves .- and ..-Directories and symbolic links.<br>
+	 * @return a {@link Path}
+	 * @throws IOException see {@link File#getCanonicalPath()}.
 	 */
-	public JSONObject getJSON(){
-		
-		JSONObject json = new JSONObject();
-		
-		json.put(JSON_PATH, path);
-		
-		json.put(JSON_SEPARATOR, separator);
-		
-		return json;
+	public Path realPath() throws IOException{
+		return new Path(getFile().getCanonicalPath(), getSeparator());
 	}
 }

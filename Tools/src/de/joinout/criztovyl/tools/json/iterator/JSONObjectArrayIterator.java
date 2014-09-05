@@ -22,25 +22,30 @@ import org.json.JSONObject;
 
 /**
  * A class for iterating over an {@link JSONArray} with {@link JSONObject}s.
+ * 
  * @author criztovyl
- *
+ * 
  */
 public class JSONObjectArrayIterator extends JSONArrayIterator<JSONObject> {
 
 	/**
 	 * Creates a new iterator for a {@link JSONArray} with {@link JSONObject}s.
-	 * @param array the {@link JSONArray}
+	 * 
+	 * @param array
+	 *            the {@link JSONArray}
 	 */
 	public JSONObjectArrayIterator(JSONArray array) {
 		super(array);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.joinout.criztovyl.tools.json.iterator.JSONArrayIterator#next()
 	 */
 	@Override
 	public JSONObject next() {
-		return getArray().getJSONObject(getIndex());
+		return getArray().getJSONObject(index());
 	}
 
 }
