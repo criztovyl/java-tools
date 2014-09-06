@@ -176,28 +176,28 @@ public class Path implements Comparable<Path>{
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	public boolean equals(Object anObject) {
-		
+
 		if(this == anObject)
 			return true;
-		
+
 		//Check if is Path
 		if(anObject instanceof Path){
-			
+
 			//Cast
 			Path aPath = (Path) anObject;
-			
+
 			//Check if path string is equal
 			return getPath(aPath.getSeparator()).equals(aPath.getPath());
 		}
 		//Check if is string
 		else if (anObject instanceof String){
-			
+
 			//Check if path string is equal to string
 			return getPath().equals((String) anObject);
 		}
 		else
 			return false;
-		
+
 	}
 
 	/**
@@ -280,7 +280,7 @@ public class Path implements Comparable<Path>{
 		// (the dot of the suffix)
 		return getPath().replaceAll("^.*\\.", "");
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -322,9 +322,12 @@ public class Path implements Comparable<Path>{
 	 * @return the relative path
 	 */
 	public Path relativeTo(Path dir) {
-		return new Path(getPath(dir.getSeparator()).replaceAll(
-				"^" + dir.getPath(), ".").replaceAll("^" + dir.getSeparator(),
-				""));
+		if(getPath(dir.separator).startsWith(dir.getPath()))
+			return new Path(getPath(dir.getSeparator()).replaceAll(
+					"^" + dir.getPath(), ".").replaceAll("^" + dir.getSeparator(),
+							""));
+		else
+			return new Path(getPath(dir.getSeparator()), dir.getSeparator());
 	}
 
 	/**
@@ -350,7 +353,7 @@ public class Path implements Comparable<Path>{
 	public String toString() {
 		return getPath(File.separator);
 	}
-	
+
 	/**
 	 * Creates the real path of this path. Mainly resolves .- and ..-Directories and symbolic links.<br>
 	 * @return a {@link Path}

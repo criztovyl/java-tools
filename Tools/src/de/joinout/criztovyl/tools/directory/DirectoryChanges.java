@@ -21,15 +21,17 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.joinout.criztovyl.tools.file.Path;
-import de.joinout.criztovyl.tools.files.FileElement;
 import de.joinout.criztovyl.tools.files.FileList;
 
 /**
@@ -70,7 +72,7 @@ public class DirectoryChanges {
 
 		current = new FileList(newer);
 		previous = new FileList(older);
-		
+
 		logger = LogManager.getLogger();
 	}
 
@@ -85,7 +87,7 @@ public class DirectoryChanges {
 
 		current = new FileList(path, false).relative();
 		previous = new FileList(path, true).relative();
-		
+
 		logger = LogManager.getLogger();
 	}
 
@@ -101,7 +103,7 @@ public class DirectoryChanges {
 
 		current = new FileList(newer, false).relative();
 		previous = new FileList(older, false).relative();
-		
+
 		logger = LogManager.getLogger();
 	}
 
@@ -130,16 +132,18 @@ public class DirectoryChanges {
 	}
 
 	/**
-	 * Locates all modified files, does not include new or deleted files.<br>
+	 * Locates all changed files, does not include new or deleted files.<br>
 	 * As first there is created/received a map with hash-strings as keys and
 	 * {@link FileElement}s as values for the current and previous
 	 * {@link FileList} via {@link FileList#getMappedHashedModifications()}.
 	 * Then all keys of the previous map are removed from the current map and
-	 * the remaining values are returned.
+	 * the remaining values are returned.<br>
+	 * Only files which checksums are different in current and previous map considered as changed.<br>
+	 * May be files can be there two times, if there where a change in the source file.
 	 * 
-	 * @return a {@link Set} of {@link FileElement} that where modified.
+	 * @return a {@link Set} of {@link Path}s that where modified.
 	 */
-	public Set<Path> getModifiedFiles() {
+	public Set<Path> getChangedFiles() {
 
 		// Get all new and deleted files, they are not included in the modified
 		// files
@@ -147,21 +151,51 @@ public class DirectoryChanges {
 		ignore.addAll(getDeletedFiles());
 		ignore.addAll(getNewFiles());
 
+		if(logger.isDebugEnabled())
+			logger.debug("Files ignored: {}", new TreeSet<>(ignore));
+
 		// Create a map for modificated files
 		final HashMap<String, Path> mod = new HashMap<>(
 				current.getMappedHashedModifications(ignore));
 
-		if(logger.isDebugEnabled())
-			logger.debug("Modifications map of current list: {}", mod);
-		
 		Map<String, Path> mod_p = previous.getMappedHashedModifications(ignore);
 
-		if(logger.isDebugEnabled())
-			logger.debug("Modifications map of previous list: {}", mod_p);
-		// Remove all keys which are in before-map
-		mod.keySet().removeAll(mod_p.keySet()
-				);
+		//Intersect map keys
+		Set<String> intersection = new HashSet<>(mod.keySet());
+		intersection.retainAll(mod_p.keySet());
 
+		if(logger.isDebugEnabled()){
+			logger.debug("Modifications map of previous list: {}", new TreeMap<>(mod_p));
+			logger.debug("Modifications map of current list: {}", new TreeMap<>(mod));
+			logger.debug("Intersection of above: {}", intersection);
+		}
+		mod.putAll(mod_p);
+
+		// Remove everything which is in both maps (is not changed)
+		mod.keySet().removeAll(new TreeSet<>(intersection));
+
+		//Only files which contents changed stay in map
+		//Iterate over keys
+		for(Iterator<String> i = mod.keySet().iterator(); i.hasNext(); ){
+
+			//Get path
+			Path path = mod.get(i.next());
+			
+			//Check if file has changed
+			if(contentChanged(path))
+				
+				//Remove if is not newer as complement file
+				if(!FileUtils.isFileNewer(path.getFile(), (path.getParent().equals(current.getDirectory()) ? previous.getDirectory() : current.getDirectory()).append(makeRelative(path)).getFile()))
+					i.remove();
+				else
+					;
+					
+			//Has not changed, remove from map
+			else
+				i.remove();
+		}
+
+		//Return changed files
 		return new HashSet<>(mod.values());
 	}
 
@@ -190,18 +224,18 @@ public class DirectoryChanges {
 
 	public void save(){
 		current.save();
+		previous.save();
 	}
-	
+
 	/**
 	 * Checks, if two files are really different in the both lists by checking if the checksums are different.
 	 * @param path the relative {@link Path} of the file. May not relative, {@link Path#relativeTo(Path)} will called with {@link FileList#getDirectory()} of previous and current file list.
 	 * @return true if checksums differ and false if the are equal or there was an {@link IOException}.
 	 */
 	public boolean contentChanged(Path path){
-		
-		path = path.relativeTo(current.getDirectory());
-		path = path.relativeTo(previous.getDirectory());
-				
+
+		path = makeRelative(path);
+
 		try {
 			return FileUtils.checksumCRC32(current.getDirectory().append(path).realPath().getFile()) != FileUtils.checksumCRC32(previous.getDirectory().append(path).realPath().getFile());
 		} catch (IOException e) {
@@ -212,5 +246,12 @@ public class DirectoryChanges {
 			return false;
 		}
 	}
+	public Path makeRelative(Path path){
 	
+		path = path.relativeTo(current.getDirectory());
+		path = path.relativeTo(previous.getDirectory());
+		
+		return path;
+	}
+
 }

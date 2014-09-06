@@ -17,11 +17,12 @@
  */
 package de.joinout.criztovyl.tools.files;
 
+import java.io.IOException;
 import java.util.AbstractCollection;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	 * JSON key for the files discovered.
 	 */
 	private static final String JSON_LIST = "files";
-	
+
 	/**
 	 * JSON key for the modifications map.
 	 */
@@ -89,7 +90,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	private Calendar lastListDate, listDate;
 
 	private JSONFile jsonFile;
-	
+
 	private boolean jsonOnly;
 
 	/**
@@ -402,36 +403,44 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 		// Create empty set if ignore is null
 		if (ignore == null)
-			ignore = Collections.EMPTY_SET;
+			ignore = new HashSet<>();
 
-		// Iterate
-		for (Path file : map.keySet()){
+			// JSON data-file should be ignored, adding to list
+			ignore.add(getDirectory().append(JSON_FILE_NAME));
 
-			//file = getDirectory().append(file);
+			// Iterate
+			for (Path path : map.keySet()){
+				
+				Path pathF =getDirectory().append(path);
+				try {
+					pathF = pathF.realPath();
+				} catch (IOException e) {
+					logger.warn("Caught Exception while resolving real path of file {}", path, e);
+				}
 
-			// Ignore if is in set
-			if (!ignore.contains(file))
+				// Check if should not ignored
+				if (!ignore.contains(path))
 
-				if(jsonOnly){
-					if(jsonFile.getJSONObject().has(JSON_MODIFICATIONS)){
-						return new JSONMap<>(jsonFile.getJSONObject().getJSONObject(JSON_MODIFICATIONS), JSONCreators.STRING, JSONCreators.PATH).getMap();
+					//Check if should use JSON only. If so, load data from JSON file and create map.
+					if(jsonOnly){
+						if(jsonFile.getJSONObject().has(JSON_MODIFICATIONS)){
+							return new JSONMap<>(jsonFile.getJSONObject().getJSONObject(JSON_MODIFICATIONS), JSONCreators.STRING, JSONCreators.PATH).getMap();
+						}
+						else
+							//JSON file has no stored modifications, return empty map.
+							return mods;
 					}
 					else
-						return mods;
-				}
-				else{
-					
-					file = getDirectory().append(file);
-					// Put with hashed path and modification time as key and
-					// FileElement as value
-					if(file.getFile().isFile())
-					mods.put(DigestUtils.sha1Hex(file.getPath()
-							+ Long.toString(file.getFile().lastModified())), file);
-				}
-		}
+						// Put with hashed path and modification time as key and
+						// full path as value
+						if(pathF.getFile().isFile())
+							mods.put(DigestUtils.sha1Hex(path.getPath()
+									+ Long.toString(pathF.getFile().lastModified())), pathF);
 
-		// Return
-		return mods;
+			}
+
+			// Return
+			return mods;
 	}
 
 	/**
@@ -479,11 +488,14 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 	}
 	/**
-	 * Saves this to a JSON file. WIll be in in the base directory specified by {@link #getDirectory()} with the file name specified by {@link #JSON_FILE_NAME}.
+	 * Saves this to a JSON file. WIll be in in the base directory specified by {@link #getDirectory()} with the file name specified by {@link #JSON_FILE_NAME}.<br>
+	 * If {@link #jsonOnly} is set, there will be no save.
 	 */
 	public void save() {
-		lastListDate = listDate;
-		new JSONFile(getDirectory().append(JSON_FILE_NAME), getJSON()).write();
+		if(!jsonOnly){
+			lastListDate = listDate;
+			new JSONFile(getDirectory().append(JSON_FILE_NAME), getJSON()).write();
+		}
 	}
 	/**
 	 * Setup the variables for the environment.
