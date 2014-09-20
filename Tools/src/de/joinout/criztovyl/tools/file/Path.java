@@ -19,6 +19,8 @@ package de.joinout.criztovyl.tools.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 
@@ -34,9 +36,9 @@ public class Path implements Comparable<Path>{
 
 	private static final String JSON_SEPARATOR = "seperator";
 
-	protected String path;
+	protected final String path;
 
-	protected String separator;
+	protected final String separator;
 
 	/**
 	 * Creates a new path from a JSON object
@@ -59,7 +61,7 @@ public class Path implements Comparable<Path>{
 	public Path(Path path) {
 
 		this.path = path.path;
-		separator = path.separator;
+		this.separator = path.separator;
 
 	}
 
@@ -140,10 +142,11 @@ public class Path implements Comparable<Path>{
 	}
 
 	/**
-	 * See {@link #append(String)}
+	 * Pass-through {@link Path} as {@link String} to {@link #append(String)}.
 	 * 
-	 * @param path
-	 * @return see {@link #append(String)}
+	 * @param path the {@link Path}
+	 * @return the new {@link Path}
+	 * @see #append(String)
 	 */
 	public Path append(Path path) {
 		return append(path.getPath());
@@ -151,11 +154,10 @@ public class Path implements Comparable<Path>{
 
 	/**
 	 * Appends a file to the path.<br>
-	 * <i><b>Does not check if path is valid!</b></i>
 	 * 
 	 * @param file
 	 *            the file to be appended.
-	 * @return the new Path
+	 * @return the new {@link Path}
 	 */
 	public Path append(String file) {
 		return new Path(path + getSeparator() + file, getSeparator());
@@ -183,11 +185,8 @@ public class Path implements Comparable<Path>{
 		//Check if is Path
 		if(anObject instanceof Path){
 
-			//Cast
-			Path aPath = (Path) anObject;
-
-			//Check if path string is equal
-			return getPath(aPath.getSeparator()).equals(aPath.getPath());
+			//Check if path string is equal (cast object to Path)
+			return getPath(((Path) anObject).getSeparator()).equals(((Path) anObject).getPath());
 		}
 		//Check if is string
 		else if (anObject instanceof String){
@@ -196,7 +195,7 @@ public class Path implements Comparable<Path>{
 			return getPath().equals((String) anObject);
 		}
 		else
-			return false;
+			return super.equals(anObject);
 
 	}
 
@@ -204,7 +203,7 @@ public class Path implements Comparable<Path>{
 	 * Extracts the name after the last separator, e.g. /etc/alternatives ==>
 	 * alternatives
 	 * 
-	 * @return the base name of this directory
+	 * @return the base name of this path
 	 */
 	public String getBasename() {
 		final String[] split = getPath().split(getSeparator());
@@ -236,16 +235,33 @@ public class Path implements Comparable<Path>{
 	}
 
 	/**
-	 * 
+	 * Creates the parent of this path by using {@link #getParent(String)} with {@link #getBasename()}.
 	 * @return the parent of this path.
+	 * @see #getParent(String)
+	 * @see #getBasename()
 	 */
 	public Path getParent() {
-		return new Path(getPath().replaceAll(getBasename() + "$", ""),
+		return getParent(getBasename());
+	}
+	/**
+	 * Creates the parent by specifying a child.
+	 * @param child the child as a {@link Path}
+	 * @return a {@link Path}
+	 */
+	public Path getParent(Path child){
+		return getParent(child.getPath());
+	}
+	/**
+	 * Creates the parent by specifying a child.
+	 * @param child the child as a {@link String}
+	 * @return a {@link Path}
+	 */
+	public Path getParent(String child){
+		return new Path(getPath().replaceAll(Pattern.quote(child) + "$", ""),
 				getSeparator());
 	}
 
 	/**
-	 * 
 	 * @return the path with {@link #getSeparator()} as separator and no
 	 *         trailing separator.
 	 */
@@ -254,10 +270,10 @@ public class Path implements Comparable<Path>{
 	}
 
 	/**
-	 * 
+	 * Creates a path string with a different separator.
 	 * @param separator
-	 *            The separator
-	 * @return the path with the given separator and no trailing separator.
+	 *            the new separator
+	 * @return the path with the given separator without trailing separator.
 	 */
 	public String getPath(String separator) {
 		return path.replace(getSeparator(), separator).replaceAll(
@@ -265,8 +281,7 @@ public class Path implements Comparable<Path>{
 	}
 
 	/**
-	 * 
-	 * @return the separator used in the path
+	 * @return the used path separator
 	 */
 	public String getSeparator() {
 		return separator;
@@ -290,11 +305,11 @@ public class Path implements Comparable<Path>{
 	}
 
 	/**
-	 * Checks if this path is inside of a directory
+	 * Checks if this path is inside of a directory.
 	 * 
 	 * @param dir
 	 *            the directory
-	 * @return true if the path starts with the given directory path, otherwise
+	 * @return true if the path starts with the directory path, otherwise
 	 *         false
 	 */
 	public boolean isInDirectory(Path dir) {
@@ -302,11 +317,11 @@ public class Path implements Comparable<Path>{
 	}
 
 	/**
-	 * Pass-through string as path to {@link #isInDirectory(Path)}
+	 * Pass-through {@link String} as {@link Path} to {@link #isInDirectory(Path)}
 	 * 
 	 * @param dir
 	 *            the directory as a string
-	 * @return true if path is in directory, otherwise false
+	 * @return true if path starts with directory path, otherwise false
 	 * @see #isInDirectory(Path)
 	 */
 	public boolean isInDirectory(String dir) {
@@ -315,30 +330,25 @@ public class Path implements Comparable<Path>{
 
 	/**
 	 * Creates a new path relative to a specified directory.<br>
-	 * May the path will not made relative, if path is not inside the given directory.
 	 * 
 	 * @param dir
 	 *            the directory
-	 * @return the relative path
+	 * @return the relative path or this path with the separator from the given directory.
 	 */
 	public Path relativeTo(Path dir) {
-		if(getPath(dir.separator).startsWith(dir.getPath()))
-			return new Path(getPath(dir.getSeparator()).replaceAll(
-					"^" + dir.getPath(), ".").replaceAll("^" + dir.getSeparator(),
-							""));
-		else
-			return new Path(getPath(dir.getSeparator()), dir.getSeparator());
+		//If file is in directory remove directory path from beginning of path, otherwise return this path with the directory separator.
+		return isInDirectory(dir) ? new Path(getPath(dir.getSeparator()).replaceAll("^" + dir.getPath(), "").replaceAll("^" + dir.getSeparator(), "")) : new Path(getPath(dir.getSeparator()), dir.getSeparator());
 	}
 
 	/**
-	 * Removes the last suffix from the path
+	 * Removes the last suffix from the path, including the dot ;)
 	 * 
 	 * @return the new path
 	 */
 	public Path removeSuffix() {
 
 		// Regular Expressions for the win!
-		// and the remove the suffix and the dot.
+		// Remove the suffix and the dot.
 
 		return new Path(getPath().replaceAll("\\." + getSuffix() + "$", ""));
 
@@ -357,9 +367,17 @@ public class Path implements Comparable<Path>{
 	/**
 	 * Creates the real path of this path. Mainly resolves .- and ..-Directories and symbolic links.<br>
 	 * @return a {@link Path}
-	 * @throws IOException see {@link File#getCanonicalPath()}.
+	 * @throws IOException If an I/O error occurs.
+	 * @see File#getCanonicalPath()
 	 */
 	public Path realPath() throws IOException{
 		return new Path(getFile().getCanonicalPath(), getSeparator());
+	}
+
+	/**
+	 * @return this {@link Path} as a {@link java.nio.file.Path}.
+	 */
+	public java.nio.file.Path getNIOPath() {
+		return FileSystems.getDefault().getPath(getPath());
 	}
 }

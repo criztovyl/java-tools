@@ -39,11 +39,12 @@ import de.joinout.criztovyl.tools.json.JSONMap;
 import de.joinout.criztovyl.tools.json.creator.JSONCreators;
 
 /**
- * This is a class that holds a list of files and directories in a directory. It also can scan a directory and find all files inside.<br>
- * After scanning, the file list is saved to a file for later compares.<br>
- * You can ignore files which matches an special regular expression.<br>
- * You can store and load this object to JSON.<br>
- * The list also holds when it was last time listed, also for later compares.<br>
+ * This is a class that holds a list of files and directories inside a directory. It also can scan a directory and find all files inside.<br>
+ * After scanning, the file list can be saved to a file for later use.<br>
+ * You can ignore files which matches an regular expression.<br>
+ * Object will be saved as JSON.<br>
+ * The list also holds when it was last time listed, also for later usage.<br>
+ * If a new {@link FileList} is created, normally it will locate all files in the directory it was created on.
  * @author criztovyl
  * 
  */
@@ -94,123 +95,106 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	private boolean jsonOnly;
 
 	/**
-	 * Creates a new list of files.
+	 * Creates a new {@link FileList} upon the given {@link Path}.
 	 * 
-	 * Adds all files from the directory to the list.
-	 * 
-	 * @param directory
+	 * @param path the path
+	 * @throws IOException If an I/O error occurs
+	 * @see FileList#FileList(Path, boolean)
 	 */
-	public FileList(Path path){
+	public FileList(Path path) throws IOException{
 		this(path, false);
 	}
 	/**
-	 * Creates a new copy of a file list.
+	 * Creates a copy of a {@link FileList}.
 	 * 
-	 * Does not updates the list.
-	 * 
-	 * @param fileList
+	 * @param fileList the {@link FileList}
 	 */
 	public FileList(FileList fileList) {
 
 		// Create set, create new logger and setup other variables
 		super();
 
-		//Setup environment
-		setupVars(fileList.directory, fileList.ignoreRegex, fileList.jsonOnly);
+		//Copy variables
+		
+		directory = fileList.directory;
+
+		ignoreRegex = fileList.ignoreRegex;
+
+		jsonOnly = fileList.jsonOnly;
 
 		map = fileList.map;
 
 		lastListDate = fileList.lastListDate;
 
 		listDate = fileList.listDate;
+		
+		//Set up logger
+		
+		logger = LogManager.getLogger();
 
 	}
 	/**
-	 * Creates a new list of files.
-	 * 
-	 * Data is taken from JSON, list is not updated.
+	 * Loads a {@link FileList} from a {@link JSONObject}.
 	 * 
 	 * @param json
-	 *            the JSON data
+	 *            the {@link JSONObject}
+	 * @see FileList#setupVars(JSONObject)
 	 */
 	public FileList(JSONObject json) {
 
-		//Setup collection
+		//Set up collection
 		super();
 
-		//Setup environment
-		setupVars(new Path(json.getJSONObject(FileList.JSON_DIR)),
-				json.getString(FileList.JSON_IGNORE_REGEX), true);
-
-		//If present, set last list date
-		if (json.has(FileList.JSON_LAST_LIST_DATE))
-			lastListDate = new JSONCalendar(
-					json.getJSONObject(FileList.JSON_LAST_LIST_DATE)).getCalendar();
-
-		//Setup files list
-		map = new JSONMap<>(json, JSONCreators.PATH, JSONCreators.CALENDAR).getMap();
-
+		//Set up object
+		setupVars(json);
 
 	}
 
 	/**
-	 * Creates a new list of files.
+	 * Creates a new {@link FileList} upon a path or loads it from a {@link JSONObject}.
 	 * 
-	 * Adds all files from the directory to the list or load them from the JSON file within (if exists).
-	 * 
-	 * The list from JSON would not be updated until you call {@link #add(Path)} or {@link #addAll(Collection)} or similar.
-	 * 
-	 * @param directory the base directory.
-	 * @param loadJSON whether should load all data from JSON only.
+	 * @param directory the path
+	 * @param jsonOnly whether should load from {@link JSONObject}
+	 * @throws IOException if an I/O error occurs in #setupVars(Path, String, boolean)
 	 */
-	public FileList(Path directory, boolean loadJSON) {
+	public FileList(Path directory, boolean jsonOnly) throws IOException {
+		this(directory, jsonOnly, "");
+	}
+	/**
+	 * Creates a new {@link FileList} upon the given {@link Path}. Defines a regular exception for excluding files.
+	 * @param directory the path
+	 * @param ignoreRegex the regular exception
+	 * @throws IOException if an I/O error occurs in #setupVars(Path, String, boolean)
+	 */
+	public FileList(Path directory, String ignoreRegex) throws IOException{
+		this(directory, false, ignoreRegex);
+	}
+	/**
+	 * Creates a new {@link FileList} upon a path or loads it from a {@link JSONObject}.
+	 * 
+	 * @param directory the {@link Path}.
+	 * @param jsonOnly whether should load from {@link JSONObject}
+	 * @throws IOException if an I/O error occurs in #setupVars(Path, String, boolean)
+	 */
+	public FileList(Path directory, boolean jsonOnly, String ignoreRegex) throws IOException {
 
-		// Setup collection
+		// Set up collection
 		super();
 
-		//Setup environment
-		setupVars(directory, "", loadJSON);
-
-		JSONObject json = jsonFile.getJSONObject();
-
-		//Check if should load data from JSON file
-		if(loadJSON){
-
-			if(json.has(JSON_LIST)){
-				map = new JSONMap<>(json.getJSONObject(JSON_LIST), JSONCreators.PATH, JSONCreators.CALENDAR).getMap();
-			}
-			else
-				map = new HashMap<>();
-		}
-		else{
-
-			//Setup map
-			map = new HashMap<>();
-
-			// Add all files from directory
-			add(getDirectory());
-		}
-
-		// Set list date to now
-		listDate = Calendar.getInstance();
-
-		// try to set last list date
-		if (json.has(FileList.JSON_LAST_LIST_DATE))
-			lastListDate = new JSONCalendar(
-					json.getJSONObject(FileList.JSON_LAST_LIST_DATE))
-		.getCalendar();
-		else
-			lastListDate = null;
+		//Set up variables
+		setupVars(directory, "", jsonOnly);
+		
+		//Set up again, if should load JSON data (first time setup is done because #getDirectory need to been initialised)
+		if(jsonOnly)
+			setupVars(new JSONFile(getDirectory().append(JSON_FILE_NAME)).getJSONObject());
 
 	}
 
 	/**
-	 * Creates a new list of files.
+	 * Loads a {@link FileList} from a JSON data {@link String}.
 	 * 
-	 * Data is taken from JSON, list is not updated.
-	 * 
-	 * @param json
-	 *            the JSON data, as a String
+	 * @param json the {@link String}
+	 * @see #FileList(JSONObject)
 	 */
 	public FileList(String json) {
 		this(new JSONObject(json));
@@ -224,9 +208,6 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	@Override
 	public boolean add(Path path) {
 
-		// All paths should be relative to this directory.
-		// path = path.relativeTo(getDirectory());
-
 		// Boolean for return
 		boolean changed = false;
 
@@ -236,7 +217,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		// Check if is file and add to index
 		if (path.getFile().isFile()) {
 
-			// Only add if not matches regular expression
+			// Only add if does not match the regular expression
 			if (!isIgnored(path)) {
 
 				// Add and receive if changed
@@ -260,19 +241,17 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 			// Add base directory to list and receive if changed
 			changed = null != map.put(path, Calendar.getInstance());
 
-			// Iterate over sub-directories and add them too
+			// Iterate over sub-directories and -files and add them too
 			for (final String sub : path.getFile().list()) {
 
-				final boolean change = add(path.append(sub));
-
-				// Also receive if changed, keep true if already true
-				changed = changed || change;
+				// Add and receive if changed, keep true if already true
+				changed = changed || add(path.append(sub));
 			}
 
 		} else
 			;
 
-		// Return boolean whether set changed
+		// Return Boolean whether Set changed
 		return changed;
 	}
 
@@ -298,8 +277,23 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		return changed;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.util.AbstractCollection#contains(java.lang.Object)
+	 */
+	public boolean contains(Object o){
+		
+		if(o instanceof String)
+			return contains(new Path((String) o));
+		
+		else if( o instanceof Path)
+			return super.contains((Path) o);
+		
+		else
+			return super.contains(o);
+	}
 	/**
-	 * The base directory
+	 * Returns the base directory.
 	 * @return a {@link Path}.
 	 */
 	public Path getDirectory() {
@@ -307,7 +301,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	}
 
 	/**
-	 * Creates JSON data from this object.
+	 * Creates a {@link JSONObject} upon this {@link FileList}.
 	 * 
 	 * @return a {@link JSONObject}.
 	 */
@@ -316,7 +310,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		//Create main JSON object
 		final JSONObject json = new JSONObject();
 
-		//Put base directory
+		//Put base directory as JSON
 		json.put(FileList.JSON_DIR, getDirectory().getJSON());
 
 		//Put ignore regular expression
@@ -348,7 +342,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	}
 
 	/**
-	 * The date when this list was listed last time.
+	 * The date this list was listed last time.
 	 * @return a {@link Calendar} or <code>null</code>, if listed first time.
 	 */
 	public Calendar getLastListDate() {
@@ -356,7 +350,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	}
 
 	/**
-	 * The date when this list was created.
+	 * The date this list was created.
 	 * @return a {@link Calendar} or <code>null</code>, if loaded from JSON.
 	 */
 	public Calendar getListDate() {
@@ -364,19 +358,16 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	}
 
 	/**
-	 * Generates a map with the file name and modification date hashed together
-	 * as key and the {@link Path} as value.<br>
-	 * No files will be ignored and the data is taken from the file themselves. 
+	 * Pass-through to {@link #getMappedHashedModifications(Set, boolean)} with Set <code>null</code> and boolean {@link #isJSONonly()}.
 	 * @see #getMappedHashedModifications(Set, boolean)
 	 * @return a map with the hash as {@link String} as key and the {@link Path} as value.
 	 */
 	public Map<String, Path> getMappedHashedModifications() {
-		return getMappedHashedModifications(null, false);
+		return getMappedHashedModifications(null, jsonOnly);
 	}
 
 	/**
-	 * Generates a map with the file name and modification date hashed together
-	 * as key and the {@link Path} as value. If {@link #isJSONonly()} is true, the data is loaded from JSON only.
+	 * Pass-through to {@link #getMappedHashedModifications(Set, boolean)} with given Set and boolean {@link #isJSONonly()}.
 	 * @param ignore a set which contains {@link Path}s that should be
 	 *            ignored. Can be <code>null</code>.
 	 * @see #getMappedHashedModifications(Set, boolean)
@@ -388,13 +379,12 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	/**
 	 * Generates a map with the file name and modification date hashed together
 	 * as key and the {@link Path} as value.<br>
-	 * You can ignore some {@link Path}s.
 	 * 
 	 * @param ignore
 	 *            a set which contains {@link Path}s that should be
 	 *            ignored. Can be <code>null</code>.
 	 * @param jsonOnly whether data should be loaded from JSON only.
-	 * @return a map.
+	 * @return a map with the hash as {@link String} as key and the {@link Path} as value.
 	 */
 	public Map<String, Path> getMappedHashedModifications(
 			Set<Path> ignore, boolean jsonOnly) {
@@ -404,14 +394,26 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		// Create empty set if ignore is null
 		if (ignore == null)
 			ignore = new HashSet<>();
+			else
+				;
 
-			// JSON data-file should be ignored, adding to list
-			ignore.add(getDirectory().append(JSON_FILE_NAME));
+		// JSON data-file should be ignored, adding to list
+		ignore.add(getDirectory().append(JSON_FILE_NAME));
 
+		//Check if should use JSON only. If so, load map from JSON file.
+		if(jsonOnly){
+			if(jsonFile.getJSONObject().has(JSON_MODIFICATIONS)){
+				return new JSONMap<>(jsonFile.getJSONObject().getJSONObject(JSON_MODIFICATIONS), JSONCreators.STRING, JSONCreators.PATH).getMap();
+			}
+			else
+				//JSON file has no stored modifications, return empty map.
+				return mods;
+		}
+		else
 			// Iterate
 			for (Path path : map.keySet()){
-				
-				Path pathF =getDirectory().append(path);
+
+				Path pathF = getDirectory().append(path);
 				try {
 					pathF = pathF.realPath();
 				} catch (IOException e) {
@@ -420,36 +422,52 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 				// Check if should not ignored
 				if (!ignore.contains(path))
-
-					//Check if should use JSON only. If so, load data from JSON file and create map.
-					if(jsonOnly){
-						if(jsonFile.getJSONObject().has(JSON_MODIFICATIONS)){
-							return new JSONMap<>(jsonFile.getJSONObject().getJSONObject(JSON_MODIFICATIONS), JSONCreators.STRING, JSONCreators.PATH).getMap();
-						}
-						else
-							//JSON file has no stored modifications, return empty map.
-							return mods;
-					}
-					else
-						// Put with hashed path and modification time as key and
-						// full path as value
-						if(pathF.getFile().isFile())
-							mods.put(DigestUtils.sha1Hex(path.getPath()
-									+ Long.toString(pathF.getFile().lastModified())), pathF);
+					// Put with hashed path and modification time as key and
+					// full path as value
+					if(pathF.getFile().isFile())
+						mods.put(DigestUtils.sha1Hex(path.getPath()
+								+ Long.toString(pathF.getFile().lastModified())), pathF);
 
 			}
 
-			// Return
-			return mods;
+		// Return
+		return mods;
+	}
+	/**
+	 * Calculates the newer of both {@link FileList}s.
+	 * @param a one {@link FileList}
+	 * @param b another {@link FileList}
+	 * @return the newer {@link FileList} or <code>null</code> if one {@link FileList#getLastListDate()} is <code>null</code>.
+	 */
+	public static FileList getNewerFileList(FileList a, FileList b) {
+		
+		//Receive Calendars
+		final Calendar aCal = a.getLastListDate();
+		final Calendar bCal = b.getLastListDate();
+
+		// Return if age is equal or one calendar is null
+		if (aCal.compareTo(bCal) == 0 || aCal == null || bCal == null)
+			return null;
+		
+
+		// Detect and return newer directory
+		return aCal.compareTo(bCal) > 0 ? a : b;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see java.util.AbstractCollection#isEmpty()
+	 */
+	public boolean isEmpty(){
+		return super.isEmpty() || size() == 1 && contains(JSON_FILE_NAME);
+	}
 	/**
 	 * Checks if a path matches the {@link #ignoreRegex}. Will be run on the
 	 * relative path.
 	 * 
 	 * @param path
 	 *            the path.
-	 * @return true if the relative path matches the regular expression,
+	 * @return true if path string matches the regular expression,
 	 *         otherwise false
 	 */
 	public boolean isIgnored(Path path) {
@@ -488,7 +506,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 	}
 	/**
-	 * Saves this to a JSON file. WIll be in in the base directory specified by {@link #getDirectory()} with the file name specified by {@link #JSON_FILE_NAME}.<br>
+	 * Saves this to a JSON file. Will be in in the base directory specified by {@link #getDirectory()} with the file name specified by {@link #JSON_FILE_NAME}.<br>
 	 * If {@link #jsonOnly} is set, there will be no save.
 	 */
 	public void save() {
@@ -502,14 +520,53 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	 * 
 	 * @param directory the base directory.
 	 * @param ignoreRegEx the regular expressions for ignoring files.
+	 * @param jsonOnly whether loaded from JSON, if true will not search for files.
+	 * @throws IOException If an I/O error occurs when getting real path of the give directory.
+	 * @see Path#realPath()
 	 */
-	private void setupVars(Path directory, String ignoreRegEx, boolean jsonOnly) {
+	private void setupVars(Path directory, String ignoreRegEx, boolean jsonOnly) throws IOException {
 
 		logger = LogManager.getLogger();
-		this.directory = directory;
+
+		this.directory = directory.realPath();
+
 		ignoreRegex = ignoreRegEx;
+
 		jsonFile = new JSONFile(getDirectory().append(JSON_FILE_NAME));
+
 		this.jsonOnly = jsonOnly;
+
+		map = new HashMap<>();
+
+		lastListDate = null;
+
+		if(!jsonOnly){
+			listDate = Calendar.getInstance();
+
+			add(getDirectory());
+		}
+	}
+	/**
+	 * Sets up the {@link FileList} from a {@link JSONObject}
+	 * @param json
+	 */
+	private void setupVars(JSONObject json){
+
+		logger = LogManager.getLogger();
+
+		directory = json.has(JSON_DIR) ? new Path(json.getJSONObject(JSON_DIR)) : new Path("");
+
+		ignoreRegex = json.has(JSON_IGNORE_REGEX) ? json.getString(JSON_IGNORE_REGEX) : "";
+
+		jsonFile = new JSONFile(getDirectory().append(JSON_FILE_NAME));
+
+		jsonOnly = true;
+
+		map = json.has(JSON_LIST) ? new JSONMap<>(json.getJSONObject(JSON_LIST), JSONCreators.PATH, JSONCreators.CALENDAR).getMap() : new HashMap<Path, Calendar>();
+
+		listDate = null;
+
+		lastListDate = json.has(FileList.JSON_LAST_LIST_DATE) ? new JSONCalendar(json.getJSONObject(FileList.JSON_LAST_LIST_DATE)).getCalendar() : null;
 	}
 	/* 
 	 * (non-Javadoc)
@@ -521,7 +578,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	}
 	/**
 	 * 
-	 * @return true, if data is from JSON only, otherwise false.se
+	 * @return true, if data is from JSON only, otherwise false.
 	 */
 	public boolean isJSONonly(){
 		return jsonOnly;
