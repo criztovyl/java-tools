@@ -44,7 +44,7 @@ import de.joinout.criztovyl.tools.json.creator.JSONCreators;
  * You can ignore files which matches an regular expression.<br>
  * Object will be saved as JSON.<br>
  * The list also holds when it was last time listed, also for later usage.<br>
- * If a new {@link FileList} is created, normally it will locate all files in the directory it was created on.
+ * If a new {@link FileList} is created, normally it will locate all files in the directory it was created on.is
  * @author criztovyl
  * 
  */
@@ -134,7 +134,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 	}
 	/**
-	 * Loads a {@link FileList} from a {@link JSONObject}.
+	 * Loads a {@link FileList} from an {@link JSONObject}.
 	 * 
 	 * @param json
 	 *            the {@link JSONObject}
@@ -151,7 +151,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	}
 
 	/**
-	 * Creates a new {@link FileList} upon a path or loads it from a {@link JSONObject}.
+	 * Creates a new {@link FileList} upon a path or loads it from an {@link JSONObject}.
 	 * 
 	 * @param directory the path
 	 * @param jsonOnly whether should load from {@link JSONObject}
@@ -170,7 +170,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		this(directory, false, ignoreRegex);
 	}
 	/**
-	 * Creates a new {@link FileList} upon a path or loads it from a {@link JSONObject}.
+	 * Creates a new {@link FileList} upon a path or loads it from a {@link JSONObject}. Defines a regular exception for excluding files.
 	 * 
 	 * @param directory the {@link Path}.
 	 * @param jsonOnly whether should load from {@link JSONObject}
@@ -182,7 +182,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		super();
 
 		//Set up variables
-		setupVars(directory, "", jsonOnly);
+		setupVars(directory, ignoreRegex, jsonOnly);
 		
 		//Set up again, if should load JSON data (first time setup is done because #getDirectory need to been initialised)
 		if(jsonOnly)
@@ -360,7 +360,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	/**
 	 * Pass-through to {@link #getMappedHashedModifications(Set, boolean)} with Set <code>null</code> and boolean {@link #isJSONonly()}.
 	 * @see #getMappedHashedModifications(Set, boolean)
-	 * @return a map with the hash as {@link String} as key and the {@link Path} as value.
+	 * @return a {@link Map} with a {@link String} as key and the {@link Path} as value.
 	 */
 	public Map<String, Path> getMappedHashedModifications() {
 		return getMappedHashedModifications(null, jsonOnly);
@@ -371,7 +371,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	 * @param ignore a set which contains {@link Path}s that should be
 	 *            ignored. Can be <code>null</code>.
 	 * @see #getMappedHashedModifications(Set, boolean)
-	 * @return a map with the hash as {@link String} as key and the {@link Path} as value.
+	 * @return a {@link Map} with a {@link String} as key and the {@link Path} as value.
 	 */
 	public Map<String, Path> getMappedHashedModifications(Set<Path> ignore) {
 		return getMappedHashedModifications(ignore, jsonOnly);
@@ -384,7 +384,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	 *            a set which contains {@link Path}s that should be
 	 *            ignored. Can be <code>null</code>.
 	 * @param jsonOnly whether data should be loaded from JSON only.
-	 * @return a map with the hash as {@link String} as key and the {@link Path} as value.
+	 * @return a {@link Map} with a {@link String} as key and the {@link Path} as value.
 	 */
 	public Map<String, Path> getMappedHashedModifications(
 			Set<Path> ignore, boolean jsonOnly) {
@@ -486,7 +486,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	}
 
 	/**
-	 * Makes all {@link Path}s relative to the base directory ({@link FileList#getDirectory()}.
+	 * Makes all {@link Path}s relative to the base directory ({@link FileList#getDirectory()}).
 	 * @return a {@link FileList}.
 	 */
 	public FileList relative(){

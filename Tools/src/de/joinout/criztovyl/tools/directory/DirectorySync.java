@@ -39,7 +39,7 @@ public class DirectorySync extends DirectoryChanges {
 	private final Logger logger;
 
 	/**
-	 * Creates a new directory sync.
+	 * Creates a new directory sync. <code>base</code> and <code>branch</code> are set.
 	 * 
 	 * @param base
 	 *            the directory the data is taken from
@@ -52,7 +52,7 @@ public class DirectorySync extends DirectoryChanges {
 	}
 
 	/**
-	 * Creates a new directory sync.
+	 * Creates a new directory sync. <code>base</code>, <code>branch</code> and regular expression for ignoring files are set.
 	 * @param base the base directory
 	 * @param branch the branch directory
 	 * @param ignoreRegex the regular expression for ignoring files
@@ -76,16 +76,26 @@ public class DirectorySync extends DirectoryChanges {
 		for (final Path path : getNewFiles()) {
 
 			// Calculate source directory
-			final Path srcD = getCurrentList().getDirectory().append(path)
-					.getFile().exists() ? getCurrentList().getDirectory()
-					: getPreviousList().getDirectory();
-			final Path targetD = srcD.equals(getCurrentList().getDirectory()) ? getPreviousList()
-					.getDirectory() : getCurrentList().getDirectory();
+			final Path srcD = getCurrentList().getDirectory().append(path).getFile().exists() ? getCurrentList().getDirectory(): getPreviousList().getDirectory();
+			final Path targetD = srcD.equals(getCurrentList().getDirectory()) ? getPreviousList().getDirectory() : getCurrentList().getDirectory();
+			Path src = srcD.append(path);
+			Path target = targetD.append(path);
 
 			try {
 
-				// Clone file
-				CloneUtils.cloneFile(srcD.append(path), targetD.append(path));
+				if(logger.isInfoEnabled())
+					logger.info("Copying from {} to {}", src, target);
+
+				// Clone if is file or create directory if is one.
+				if(src.getFile().isFile())
+					CloneUtils.cloneFile(src, target);
+				if(src.getFile().isDirectory())
+					target.getFile().mkdir();
+					
+					
+
+				if(logger.isInfoEnabled())
+					logger.info("Copied.");
 
 			} catch (final IOException e) {
 
@@ -127,7 +137,14 @@ public class DirectorySync extends DirectoryChanges {
 			if(path.getFile().isDirectory())
 				
 				try { //Try to delete directory recursively.
+					
+					if(logger.isInfoEnabled())
+						logger.info("Deleting {}", path);
+					
 					FileUtils.deleteDirectory(path.getFile());
+					
+					if(logger.isInfoEnabled())
+						logger.info("Deleted.");
 				} catch (IOException e) { //Catch general IOException.
 					
 					if(logger.isWarnEnabled())
@@ -138,7 +155,14 @@ public class DirectorySync extends DirectoryChanges {
 				}
 			else
 				try { //Try to delete file, using NIO to get an exception whether something went wrong.
+					
+					if(logger.isInfoEnabled())
+						logger.info("Deleting {}", path);
+					
 					Files.delete(path.getNIOPath());
+					
+					if(logger.isInfoEnabled())
+						logger.info("Deleted.");
 				} catch (NoSuchFileException e){ //Catch NoSuchFileException (NIO FileNotFoundException), file may has been deleted by an earlier
 					if(logger.isDebugEnabled())
 						logger.debug("File {} not found, may be already deleted?", path);
@@ -161,8 +185,20 @@ public class DirectorySync extends DirectoryChanges {
 	 * @see #removeDeletedFiles()
 	 */
 	public void sync(){
+		
+		if(logger.isInfoEnabled())
+			logger.info("Copying new files...");
+		
 		copyNewFiles();
+		
+		if(logger.isInfoEnabled())
+			logger.info("Update changed files...");
+		
 		updateChangedFiles();
+		
+		if(logger.isInfoEnabled())
+			logger.info("Remove deleted files...");
+		
 		removeDeletedFiles();
 	}
 
@@ -175,8 +211,14 @@ public class DirectorySync extends DirectoryChanges {
 		for (final Path path : getChangedFiles())
 			try {
 
+				if(logger.isInfoEnabled())
+					logger.info("Copying from {} to {}", path, getComplementPath(path));
+				
 				// Clone file
 				CloneUtils.cloneFile(path, getComplementPath(path));
+				
+				if(logger.isInfoEnabled())
+					logger.info("Copied.");
 
 			} catch (final IOException e) {
 

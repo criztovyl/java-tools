@@ -22,11 +22,15 @@ import java.util.Calendar;
 import org.json.JSONObject;
 
 /**
+ * A class that holds a {@link Calendar} in an {@link JSONObject}.
  * @author criztovyl
  * 
  */
 public class JSONCalendar{
 
+	/**
+	 * The milliseconds since epoch
+	 */
 	public static final String JSON_EPOCH_MILLIS = "epochMillis";
 
 	private final Calendar calendar;

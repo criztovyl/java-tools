@@ -27,10 +27,11 @@ import de.joinout.criztovyl.tools.json.creator.JSONCreator;
 import de.joinout.criztovyl.tools.json.iterator.JSONStringArrayIterator;
 
 /**
+ * A class that transforms a {@link Map} to JSON.
  * @author criztovyl
  *
  */
-public class JSONMap<K, V> {
+public class JSONMap<K, V>{
 
 	private Map<K, V> map;
 
@@ -116,7 +117,7 @@ public class JSONMap<K, V> {
 
 	/**
 	 * 
-	 * @return the corresponding map
+	 * @return the corresponding {@link Map}
 	 */
 	public Map<K, V> getMap(){
 		return map;

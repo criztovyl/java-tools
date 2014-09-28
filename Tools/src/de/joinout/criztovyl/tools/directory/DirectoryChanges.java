@@ -45,7 +45,7 @@ public class DirectoryChanges {
 	private Logger logger;
 
 	/**
-	 * Creates a new instance.
+	 * Creates a new instance. <code>previous</code> and <code>current</code> list are set.
 	 * 
 	 * @param previous
 	 *            the previous list
@@ -128,7 +128,7 @@ public class DirectoryChanges {
 	 * the remaining values are returned.<br>
 	 * Only files which content changed are included.
 	 * 
-	 * @return a {@link Set} of {@link Path}s that where modified.
+	 * @return a {@link Set} of {@link Path}s
 	 * @see FileList#getMappedHashedModifications()
 	 */
 	public Set<Path> getChangedFiles() {
@@ -232,7 +232,7 @@ public class DirectoryChanges {
 	/**
 	 * Checks, if two files are really different in the both lists by checking whether the checksums are different.
 	 * @param path a {@link Path} (should be from <code>current</code> or <code>previous</code>)
-	 * @return true if checksums are different and false if they are equal or the path is a directory.
+	 * @return <code>true</code> if checksums are different and <code>false</code> if they are equal or the path is a directory.
 	 * @throws IOException If an I/O error occurs.
 	 */
 	public boolean contentChanged(Path path) throws IOException{
