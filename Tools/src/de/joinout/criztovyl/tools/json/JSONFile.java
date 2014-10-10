@@ -153,18 +153,28 @@ public class JSONFile {
 	 * Writes the JSON data to the file.
 	 */
 	public void write() {
+		
 
 		try {
+			//Create file if not exists
+			path.touch();
+			
+			//Create writer
 			final FileWriter fw = new FileWriter(path.getFile());
 
+			//Write
 			fw.write(data);
 
+			//Flush 'n' close
 			fw.flush();
 			fw.close();
 		} catch (final IOException e) {
 			logger.catching(e);
 		}
 
+	}
+	public void setData(String str){
+		data = str;
 	}
 
 }

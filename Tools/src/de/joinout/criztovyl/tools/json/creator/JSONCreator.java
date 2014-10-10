@@ -41,21 +41,27 @@ public interface JSONCreator<T>{
 	public T fromJSON(JSONObject json);
 	
 	/**
-	 * Indicates whether the key can be represented by a {@link String}
+	 * Indicates whether the object can be represented by a {@link String}
 	 * @return true if yes, otherwise false
 	 */
-	public boolean keyCanBeString();
+	public boolean canBeString();
 	
 	/**
 	 * 
-	 * @return the key as a {@link String}, may <code>null</code> when {@link #keyCanBeString()} is <code>false</code>.
+	 * @return A {@link String} or <code>null</code> when {@link #canBeString()} is <code>false</code>.
 	 */
-	public String keyString(T t);
+	public String string(T t);
 	
 	/**
-	 * Creates an object represented by a {@link String}.
+	 * Creates the object represented by a {@link String}.
 	 * @param str the string
-	 * @return the object represented, may <code>null</code> when {@link #keyCanBeString()} is <code>false</code>.
+	 * @return the object or <code>null</code> when {@link #canBeString()} is <code>false</code>.
 	 */
-	public T fromKeyString(String str);
+	public T fromString(String str);
+	
+	/**
+	 * 
+	 * @return the {@link Class} that guarantees JSON support
+	 */
+	public Class<?> getCreatorClass();
 }

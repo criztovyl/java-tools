@@ -71,9 +71,11 @@ public class DirectorySync extends DirectoryChanges {
 	 * Copies the new files from the source to the target.
 	 */
 	public void copyNewFiles() {
+		
+		int file = 1;
 
 		// Iterate over new files
-		for (final Path path : getNewFiles()) {
+		for (final Path path : getNewFiles(false)) {
 
 			// Calculate source directory
 			final Path srcD = getCurrentList().getDirectory().append(path).getFile().exists() ? getCurrentList().getDirectory(): getPreviousList().getDirectory();
@@ -84,11 +86,13 @@ public class DirectorySync extends DirectoryChanges {
 			try {
 
 				if(logger.isInfoEnabled())
-					logger.info("Copying from {} to {}", src, target);
+					logger.info("Copying file {} of {} from {} to {}", file, getNewFiles(false).size(), src, target);
 
-				// Clone if is file or create directory if is one.
+				// Clone if is file 
 				if(src.getFile().isFile())
 					CloneUtils.cloneFile(src, target);
+				
+				//Create directory if is one.
 				if(src.getFile().isDirectory())
 					target.getFile().mkdir();
 					
@@ -106,6 +110,9 @@ public class DirectorySync extends DirectoryChanges {
 				if (logger.isDebugEnabled())
 					logger.debug("IOException.", e);
 			}
+			
+			//Increment file
+			file++;
 		}
 	}
 	
@@ -128,7 +135,7 @@ public class DirectorySync extends DirectoryChanges {
 		}
 		
 		//Iterate over files
-		for(Path path : getDeletedFiles()){
+		for(Path path : getDeletedFiles(false)){
 			
 			//Make absolute
 			path = getPreviousList().getDirectory().append(path);
@@ -187,17 +194,17 @@ public class DirectorySync extends DirectoryChanges {
 	public void sync(){
 		
 		if(logger.isInfoEnabled())
-			logger.info("Copying new files...");
+			logger.info("Copying {} new files...", getNewFiles(false).size());
 		
 		copyNewFiles();
 		
 		if(logger.isInfoEnabled())
-			logger.info("Update changed files...");
+			logger.info("Update {} changed files...", getChangedFiles(false).size());
 		
 		updateChangedFiles();
 		
 		if(logger.isInfoEnabled())
-			logger.info("Remove deleted files...");
+			logger.info("Remove {} deleted files...", getDeletedFiles(false).size());
 		
 		removeDeletedFiles();
 	}
@@ -206,13 +213,15 @@ public class DirectorySync extends DirectoryChanges {
 	 * Updates the changed files.
 	 */
 	public void updateChangedFiles() {
+		
+		int file = 1;
 
 		// Iterate of changed files
-		for (final Path path : getChangedFiles())
+		for (final Path path : getChangedFiles(false))
 			try {
 
 				if(logger.isInfoEnabled())
-					logger.info("Copying from {} to {}", path, getComplementPath(path));
+					logger.info("Copying file {} of {} from {} to {}", file, getChangedFiles(false), path, getComplementPath(path));
 				
 				// Clone file
 				CloneUtils.cloneFile(path, getComplementPath(path));

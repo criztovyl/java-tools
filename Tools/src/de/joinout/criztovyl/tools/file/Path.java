@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 
 /**
@@ -362,6 +363,16 @@ public class Path implements Comparable<Path>{
 	@Override
 	public String toString() {
 		return getPath(File.separator);
+	}
+	/**
+	 * Creates a file on this {@link Path} if it not exists.
+	 * @throws IOException If an I/O error occurs
+	 * @see FileUtils#touch(File)
+	 * @see File#exists()
+	 */
+	public void touch() throws IOException{
+		if(!getFile().exists())
+			FileUtils.touch(getFile());
 	}
 
 	/**
