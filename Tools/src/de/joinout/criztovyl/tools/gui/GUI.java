@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class GUI {
 	
-    protected Shell shell;
+    private Shell shell;
     
     private Logger logger;
     
@@ -37,7 +37,7 @@ public class GUI {
     public void start(){
     	
         if(logger.isInfoEnabled())
-            logger.info("Starting SWT...");
+            logger.info("Starting new SWT...");
         
         //Open shell
         shell.open();

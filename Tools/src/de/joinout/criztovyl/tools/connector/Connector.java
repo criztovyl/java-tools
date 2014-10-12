@@ -91,6 +91,29 @@ public class Connector<C> {
 
 	}
 	/**
+	 * Adds a one-way connection between one and some other objects.
+	 * @param x a object
+	 * @param y other objects
+	 */
+	public void addConnection(C x, C[] y){
+		
+		//Iterate and pass-through
+		for(C y_ : y)
+			addConnection(x, y_);
+	}
+	/**
+	 * Adds a one-way connection between one and some other objects.<br>
+	 * Objects are given as {@link Pair}s of the object and an ID.
+	 * @param x one object, as a {@link Pair} 
+	 * @param y
+	 */
+	public void addConnection(Pair<C, Integer> x, Pair<C, Integer>[] y){
+		
+		//Iterate and pass-through
+		for(Pair<C, Integer> y_ : y)
+			addConnection(x, y_);
+	}
+	/**
 	 * Adds a one-way connection between two objects and defines the IDs.<br>
 	 * Use {@link #FOO_ID} for objects, that shouldn't identified.
 	 * @param x an object
@@ -108,6 +131,19 @@ public class Connector<C> {
 		addConnection(x, y);
 	}
 	/**
+	 * Adds a new connection between the two objects and defines the IDs.<br>
+	 * More see {@link #addConnection(Object, int, Object, int)}.<br>
+	 * Objects are given as {@link Pair}s of the object and an ID.
+	 * @param x
+	 * @param y
+	 */
+	public void addConnection(Pair<C, Integer> x, Pair<C, Integer> y){
+		
+		//Receive values and pass-through
+		addConnection(x.getFirst(), x.getSecond(), y.getFirst(), y.getSecond());
+		
+	}
+	/**
 	 * Adds a bidirectional connection between two objects.<br>
 	 * @param x an object
 	 * @param y another object
@@ -120,6 +156,25 @@ public class Connector<C> {
 		
 		//Inverted pass-through
 		addConnection(y, x);
+		
+	}
+	
+	/**
+	 * Adds a bidirectional connection between one and some other objects.
+	 * @param x one object
+	 * @param y other objects
+	 */
+	public void addBidirectionalConnection(C x, C y[]){
+		
+		//Iterate and pass-through
+		for(C y_ : y)
+			addBidirectionalConnection(x, y_);
+		
+	}
+	public void addBidirectionalConnection(Pair<C, Integer> x, Pair<C, Integer> y){
+		
+		//Receive values and pass-through
+		addBidirectionalConnection(x.getFirst(), x.getSecond(), y.getFirst(), y.getSecond());
 		
 	}
 	/**
@@ -136,6 +191,20 @@ public class Connector<C> {
 		addConnection(x, xId, y, yId);
 		addConnection(y, yId, x, xId);
 		
+	}
+	/**
+	 * Adds a bidirectional connection between one and some other objects and sets IDs.<br>
+	 * More see {@link #addBidirectionalConnection(Object, int, Object, int)}
+	 * Objects are given as {@link Pair}s of the object and an ID.
+	 * @param x
+	 * @param y
+	 */
+	public void addBidirectionalConnection(Pair<C, Integer> x, Pair<C, Integer>[] y){
+
+		//Iterate, receive values and pass-through
+		for(Pair<C, Integer> y_ : y)
+			addBidirectionalConnection(x.getFirst(), x.getSecond(), y_.getFirst(), y_.getSecond());
+
 	}
 	/**
 	 * Adds a connector.
