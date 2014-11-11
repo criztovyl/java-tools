@@ -21,65 +21,228 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import de.joinout.criztovyl.tools.lists.ActionMethod;
+import de.joinout.criztovyl.tools.lists.ListUtility;
+
 /**
- * A class that helps with {@link String}s.
+ * A object that helps with {@link String}s.<br>
+ * To access the generated {@link String} use {@link #getString()}.
  * @author criztovyl
  *
  */
 public class StringUtils {
+	
+	public final static int STYLE_KOMMA_AND = 0;
+	public final static int STYLE_NEWLINE = 1;
+	
+	private String string;
+	private ArrayList<String> strings;
+	
+	/**
+	 * Sets up StringUtils with a {@link String} {@link Collection}.
+	 * @param strings the {@link Collection}
+	 */
+	public StringUtils(Collection<String> strings){
+		this.string = "";
+		this.strings = new ArrayList<>(strings);
+	}
 
 	/**
-	 * Transforms an {@link String} {@link Collection} to an single string and optional break after each element.
+	 * Sets up StringUtils for a {@link String}.
+	 * @param string the {@link String}
+	 */
+	public StringUtils(String string){
+		this.string = string;
+		this.strings = new ArrayList<>();
+	}
+	
+	public StringUtils(String ...strings){
+		 this.strings = new ArrayList<>(Arrays.asList(strings));
+		 string = "";
+	}
+
+	/**
+	 * Transforms an {@link String} {@link Collection} to an single string and optional break after each
+	 * element.
 	 * @param strings the {@link Collection}
 	 * @param attachLineBreaks whether should attach line break to each element
 	 * @return a {@link String}
+	 * @deprecated Replaced by constructor {@link #StringUtils(Collection, boolean)}. Get string with
+	 * {@link #getString()}.
 	 */
+	@Deprecated
 	public static String fromStringCollection(Collection<String> strings, boolean attachLineBreaks){
-		
-		//Set up
-		String str = "";
-		String lineend = String.format("%n");
-		
-		//Iterate
-		for(String line : strings)
-			str += attachLineBreaks ? line + lineend: line;
-		
-		//Return
-		return str;
+		return attachLineBreaks ? 
+				new StringUtils(strings).join(STYLE_NEWLINE) : 
+					new StringUtils(strings).join("");
 	}
 	/**
 	 * Transforms an {@link String} {@link Collection} to an single string.
 	 * @param strings the {@link Collection}
 	 * @return a {@link String}
+	 * @deprecated Replaced by constructor {@link #StringUtils(Collection)}. Get string with 
+	 * {@link #getString()}.
 	 */
+	@Deprecated
 	public static String fromStringCollection(Collection<String> strings){
 		return fromStringCollection(strings, false);
 	}
 	/**
-	 * Joins all elements from a {@link Collection} with a separator only the last element will be separated by special separator.
+	 * @return the string or an empty String if there is a collection only
+	 */
+	public String getString() {
+		return string;
+	}
+	public Collection<String> getCollection(){
+		return strings;
+	}
+	/**
+	 * Joins the {@link String} {@link Collection} into a single string.
+	 * @return the joined {@link String}.
+	 */
+	public String join(){
+		return join("");
+	}
+	/**
+	 * Joins the {@link String} {@link Collection} by a special style.<br>
+	 * Styles are static fields in this class, prefixed with STYLE_<br>
+	 * Current Styles:
+	 * <ul>
+	 * <li>{@link #STYLE_KOMMA_AND}: joins by "," and last element by "and"</li>
+	 * <li>{@link #STYLE_NEWLINE}: joins elements by newlines (defined by {@link #newline()})</li>
+	 * </ul>
+	 * @param style the style (TODO: custom styles by objects)
+	 * @return the joined {@link String} or an empty one, if the style is unknown.
+	 */
+	public String join(int style){
+		
+		switch(style){
+		case STYLE_KOMMA_AND:
+			return join(",", "and");
+		case STYLE_NEWLINE:
+			return join(newline());
+		default:
+			return "";	
+		}
+
+	}
+	/**
+	 * Joins the {@link String} {@link Collection} by a separator.
+	 * @param separator the separator
+	 * @return this, for chaining.
+	 */
+	public String join(String separator){
+		return join(separator, separator);
+	}
+	
+	/**
+	 * Joins the {@link String} {@link Collection} by a separator and the last element by a
+	 * special separator.
+	 * @param separator the separator
+	 * @param specialSeparator the special separator
+	 * @return this, for chaining
+	 */
+	public String join(String separator, String specialSeparator){
+
+		String string = "";
+		if(!strings.isEmpty()){
+
+			// Remove last
+			String last = strings.remove(strings.size()-1);
+
+			// If only last element, set string to last.
+			if(strings.size() == 0)
+				string += last;
+			/* If more elements, iterate over list and add each element, suffixed by the separator, to
+			 * string. After iteration replace last separator with the special last separator and append
+			 * last element removed above.
+			 */
+			else{
+				for(String related : strings)
+					string += related + separator;
+				string = specialSeparator.equals("") ? string += last : string.replaceAll(separator + "$", specialSeparator + last);
+			}
+		}
+		return string;
+	}
+	
+	public StringUtils prefix(String prefix){
+		return each("%2$s%1$s", prefix);
+	}
+	
+	/**
+	 * Sets the String collection.
+	 * @param collection
+	 */
+	private StringUtils setCollection(Collection<String> collection){
+		this.strings = new ArrayList<>(collection);
+		
+		return this;
+	}
+	public StringUtils suffix(String suffix){
+		return each("%s%s", suffix);
+	}
+	/**
+	 * Does a {@link String#format(String, Object...)} on each {@link Collection} element and 
+	 * replaces it with the result.<br>
+	 * The the element is always the first argument.
+	 * @param format the format string
+	 * @param args the arguments
+	 * @return this, for chaining.
+	 */
+	private StringUtils each(final String format, Object ...args){
+		
+		//Create arguments ArrayList (for usage in action)
+		final ArrayList<Object> args_ = new ArrayList<>(Arrays.asList(args));	
+		
+		// Replace list
+		setCollection(new ListUtility<>(
+				new ArrayList<>(getCollection())).each(new ActionMethod<String, String>() {
+
+			public String action(String i) {
+				return String.format(format, createArgumentsList(i, args_).toArray());
+			}
+		}));
+
+		return this;
+	}
+	/**
+	 * Replaces all occurrences of a regular expression in all {@link String}s.
+	 * @param regex the regular expression
+	 * @param replacement the replacement
+	 * @return this, for chaining.
+	 */
+	public StringUtils replaceAll(final String regex, final String replacement){
+		
+		//Replace collection and do an for-each
+		setCollection(new ListUtility<>(new ArrayList<>(strings)).each(
+				new ActionMethod<String, String>(){
+
+			public String action(String i) {
+				
+				// Replace
+				return i.replaceAll(regex, replacement);
+			}
+			
+		}));
+
+		// Return
+		return this;
+	}
+	/**
+	 * Joins all elements from a {@link Collection} with a separator only the last element will be 
+	 * separated by special separator.
 	 * @param stringsC the {@link Collection}
 	 * @param separator the separator
-	 * @param lastSeperator the special last separator
+	 * @param lastSeparator the special last separator
 	 * @return a {@link String}
-	 */
-	public static String joinCollection(Collection<String> stringsC, String separator, String lastSeperator){
+	 * @deprecated Replaced by constructor {@link StringUtils#StringUtils(Collection, String, String)}. 
+	 * Get string with {@link #getString()}.
+	 */	
+	@Deprecated
+	public static String joinCollection(Collection<String> stringsC, String separator, String lastSeparator){
+		return new StringUtils(stringsC).join(separator, lastSeparator);
 		
-		ArrayList<String> strings = new ArrayList<>(stringsC);
-		
-		if(strings.isEmpty())
-			return "";
-		
-		String str = "";
-		String last = strings.remove(strings.size()-1);
-		
-		if(strings.size() == 0)
-			str += last;
-		else{
-			for(String related : strings)
-				str += related + separator;
-			str = str.replaceAll(separator + "$", lastSeperator + last);
-		}
-		return str;
 	}
 	/**
 	 * Joins all elements from a {@link Collection} with a separator.
@@ -87,24 +250,30 @@ public class StringUtils {
 	 * @param separator the separator
 	 * @return a {@link String}
 	 */
+	@Deprecated
 	public static String joinCollection(Collection<String> stringsC, String separator){
 		return joinCollection(stringsC, separator, separator);
 	}
 	/**
-	 * Joins all elements from a {@link Collection} with ", " only the last element will be separated by " and ".
+	 * Joins all elements from a {@link Collection} with ", " only the last element will be separated by
+	 * " and ".
 	 * @param stringsC the {@link Collection}
 	 * @return a {@link String}
 	 */
+	@Deprecated
 	public static String joinCollection(Collection<String> stringsC){
 		return joinCollection(stringsC, ", ", " and ");
 	}
 	/**
-	 * Joins all {@link String}s with a separator. Optional last element will be separated by a special separator.
+	 * Joins all {@link String}s with a separator. Optional last element will be separated by a special
+	 * separator.
 	 * @param separator the separator
-	 * @param specialSeparator whether the first {@link String} from the {@link String}s should be the special separator
+	 * @param specialSeparator whether the first {@link String} from the {@link String}s should be the
+	 * special separator
 	 * @param strings the {@link String}s
 	 * @return a {@link String}
 	 */
+	@Deprecated
 	public static String join(String separator, boolean specialSeparator, String ...strings){
 		
 		//Create String list
@@ -112,14 +281,18 @@ public class StringUtils {
 		
 		//Join
 		//If special last separator should be used, "shift" it from the array (List#remove(0))
-		return specialSeparator ? joinCollection(list, separator, list.remove(0)) : joinCollection(list, separator);
+		return specialSeparator ? 
+				joinCollection(list, separator, list.remove(0)) : 
+					joinCollection(list, separator);
 	}
 	/**
-	 * Pass-through to {@link #joinCollection(Collection)} by creating a {@link Collection} from {@link String}s.
+	 * Pass-through to {@link #joinCollection(Collection)} by creating a {@link Collection} from
+	 * {@link String}s.
 	 * @param strings the {@link String}s
 	 * @see StringUtils#joinCollection(Collection)
 	 * @return a {@link String}
 	 */
+	@Deprecated
 	public static String join(String ...strings){
 		return joinCollection(stringCollection(strings));
 	}
@@ -128,16 +301,18 @@ public class StringUtils {
 	 * @param strings the strings
 	 * @return a {@link Collection} (a {@link ArrayList}).
 	 */
+	@Deprecated
 	public static Collection<String> stringCollection(String ...strings){
-		return new ArrayList<>(Arrays.asList(strings));
+		return new StringUtils(strings).getCollection();
 	}
 	/**
-	 * Splits at newline, prefix and joins by newline
+	 * Splits at newline, prefixes and joins by newline
 	 * @param lines
 	 * @param newline
 	 * @param prefix
 	 * @return a {@link String}
 	 */
+	@Deprecated
 	public static String prefixLines(String lines, String newline, String prefix){
 		String[] linesA = lines.split(newline);
 		String linesN = "";
@@ -146,10 +321,40 @@ public class StringUtils {
 		return linesN;
 	}
 	/**
+	 * Splits at newline (defined by {@link #newline()}), prefixes and joins by newline.
+	 * @param lines the lines (in one string)
+	 * @param prefix the prefix
+	 * @return
+	 */
+	@Deprecated
+	public static String prefixLines(String lines, String prefix){
+		return prefixLines(lines, newline(), prefix);
+	}
+	/**
 	 * 
-	 * @return the OS-dependent new-line String from {@link String#format(String, Object...)} by "<code>%n</code>".  
+	 * @return the OS-dependent new-line String from {@link String#format(String, Object...)} by
+	 * "<code>%n</code>".  
 	 */
 	public static String newline(){
 		return String.format("%n");
+	}
+	
+	/**
+	 * Creates the argument list for {@link #each(String, Object...)}.
+	 * @param str the element
+	 * @param args the arguments
+	 * @return a {@link ArrayList} with the element as first element.
+	 */
+	private ArrayList<Object> createArgumentsList(String str, ArrayList<Object> args){
+		
+		// Create new List
+		ArrayList<Object> args_ = new ArrayList<>();
+		
+		// Add element and args
+		args_.add(str);
+		args_.addAll(args);
+		
+		// Return
+		return args_;
 	}
 }
