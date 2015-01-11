@@ -106,6 +106,10 @@ public class JSONCreators {
 		public Class<?> getCreatorClass() {
 			return String.class;
 		}
+
+		public JSONCreator<String> getJSONCreator() {
+			return this;
+		}
 	};
 	
 	/**
@@ -137,6 +141,10 @@ public class JSONCreators {
 		@Override
 		public Class<?> getCreatorClass() {
 			return Integer.class;
+		}
+
+		public JSONCreator<Integer> getJSONCreator() {
+			return this;
 		}
 	};
 	

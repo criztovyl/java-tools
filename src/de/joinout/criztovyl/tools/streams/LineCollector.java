@@ -27,7 +27,7 @@ import java.util.List;
 import de.joinout.criztovyl.tools.strings.StringUtils;
 
 /**
- * Collects all lines from different inputs and offers them in different formats.<br>
+ * Collects all lines from a input and offers them in different formats.<br>
  * <table>
  * <tr><td>
  * Current formats
@@ -94,8 +94,8 @@ public class LineCollector{
 	 * @return a {@link String}
 	 */
 	public String asString(){
-		//Transform to single String
-		return StringUtils.fromStringCollection(lines, true);
+		//Transform into a single String
+		return new StringUtils(lines).join(StringUtils.STYLE_NEWLINE);
 	}
 	
 }

@@ -60,5 +60,13 @@ public abstract class AbstractJSONCreator<T> implements JSONCreator<T>{
 	 * @see de.joinout.criztovyl.tools.json.creator.JSONCreator#getCreatorClass()
 	 */
 	public abstract Class<?> getCreatorClass();
+	
+	/*
+	 * (non-Javadoc)
+	 * @see de.joinout.criztovyl.tools.json.creator.JSONable#getJSONCreator()
+	 */
+	public JSONCreator<T> getJSONCreator(){
+		return this;
+	}
 
 }
