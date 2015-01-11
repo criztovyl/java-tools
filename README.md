@@ -85,3 +85,4 @@ A class that helps with string, as example joining collections.
 [15]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/streams/LineCollector.html
 [16]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/strings/package-summary.html
 
+

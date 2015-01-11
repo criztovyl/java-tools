@@ -25,7 +25,7 @@ import org.json.JSONObject;
  * @author criztovyl
  *
  */
-public interface JSONCreator<T>{
+public interface JSONCreator<T> extends JSONable<T>{
 
 	/**
 	 * Creates JSON data from a object.
