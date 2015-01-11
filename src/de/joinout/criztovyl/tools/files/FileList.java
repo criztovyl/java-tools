@@ -19,6 +19,7 @@ package de.joinout.criztovyl.tools.files;
 
 import java.io.IOException;
 import java.util.AbstractCollection;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
@@ -42,9 +44,11 @@ import de.joinout.criztovyl.tools.json.creator.JSONCreators;
  * This is a class that holds a list of files and directories inside a directory. It also can scan a directory and find all files inside.<br>
  * After scanning, the file list can be saved to a file for later use.<br>
  * You can ignore files which matches an regular expression.<br>
- * Object will be saved as JSON.<br>
+ * Object can be saved as JSON.<br>
  * The list also holds when it was last time listed, also for later usage.<br>
- * If a new {@link FileList} is created, normally it will locate all files in the directory it was created on.is
+ * If a new {@link FileList} is created, normally it will locate all files in the directory it was created on.<br>
+ * All {@link Path}s inside {@link Set} are takes as put in. (i.e. creating on directory <code>dir</code> file <code>file</code> inside <code>dir</code> will be stored as <code>dir/file</code>.
+ * But if directory is <code>/home/user/dir</code>, file <code>file</code> inside will be stored as <code>/home/user/dir/file</code>.
  * @author criztovyl
  * 
  */
@@ -91,6 +95,8 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	private Calendar lastListDate, listDate;
 
 	private JSONFile jsonFile;
+	
+	private ArrayList<Path> symlinks;
 
 	private boolean jsonOnly;
 
@@ -127,6 +133,8 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		lastListDate = fileList.lastListDate;
 
 		listDate = fileList.listDate;
+		
+		symlinks = fileList.symlinks;
 		
 		//Set up logger
 		
@@ -214,42 +222,66 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		if (logger.isTraceEnabled())
 			logger.trace("Try to add {} ...", path);
 
-		// Check if is file and add to index
-		if (path.getFile().isFile()) {
+		
+		try {
+			
+			//Check if is not a symbolic link
+			if(!FileUtils.isSymlink(path.getFile())){
+				
+				// Check if is file and add to index
+				if (path.getFile().isFile()) {
 
-			// Only add if does not match the regular expression
-			if (!isIgnored(path)) {
+					// Only add if does not match the regular expression
+					if (!isIgnored(path)) {
 
-				// Add and receive if changed
-				changed = null != map.put(path, Calendar.getInstance());
+						// Add and receive if changed
+						changed = null != map.put(path, Calendar.getInstance());
 
-				if (logger.isDebugEnabled())
-					logger.debug("Added {}.", path);
+						if (logger.isDebugEnabled())
+							logger.debug("Added.");
 
-			} else if (logger.isInfoEnabled())
+					} else if (logger.isInfoEnabled())
 
-				logger.info("{} ignored, matches ignore regex.", path);
+						logger.info("{} ignored, matches ignore regex.", path);
 
-			else
-				;
-		}
+					else
+						;
+				}
 
-		// Check if is directory and add to index. If not ignored, also add the
-		// subfiles/-directories
-		else if (path.getFile().isDirectory() && !isIgnored(path)) {
+				// Check if is directory and add to index. If not ignored, also add the
+				// subfiles/-directories
+				else if (path.getFile().isDirectory() && !isIgnored(path)) {
 
-			// Add base directory to list and receive if changed
-			changed = null != map.put(path, Calendar.getInstance());
+					// Add base directory to list and receive if changed
+					changed = null != map.put(path, Calendar.getInstance());
 
-			// Iterate over sub-directories and -files and add them too
-			for (final String sub : path.getFile().list()) {
+					// Iterate over sub-directories and -files and add them too
+					for (final String sub : path.getFile().list()) {
 
-				// Add and receive if changed, keep true if already true
-				changed = changed || add(path.append(sub));
+						// Add and receive if changed, keep true if already true
+						changed = changed || add(path.append(sub));
+					}
+
+				} else
+					;
 			}
+			//Is symbolic link
+			else{
+				
+				if(logger.isWarnEnabled())
+					logger.warn("Is symbolic link, ignoring.");
+				
+				//Add to symbolic link list
+				symlinks.add(path);
+			}
+				
 
-		} else
-			;
+		} catch (IOException e) {
+			if(logger.isErrorEnabled())
+				logger.error("IOException while testing if is symlink: {}", e.toString());
+			if(logger.isDebugEnabled())
+				logger.debug(e);
+		}
 
 		// Return Boolean whether Set changed
 		return changed;
@@ -298,6 +330,30 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	 */
 	public Path getDirectory() {
 		return directory;
+	}
+	/**
+	 * Returns all (ignored) symbolic links.
+	 * @return a {@link ArrayList} of {@link Path}s.
+	 * @param relative whether returned {@link Path}s should be relative
+	 */
+	public ArrayList<Path> getSymLinks(boolean relative){
+		
+		if(relative){ //If should be relative, make all paths relative
+			
+			//Create list
+			ArrayList<Path> list = new ArrayList<>();
+			
+			//Iterate over symbolic links
+			for(Path path : symlinks)
+				
+				//Make relative
+				list.add(path.relativeTo(getDirectory()));
+			
+			//Return
+			return list;
+		}
+		else //Do not need to be relative, simply return
+			return symlinks;
 	}
 
 	/**
@@ -506,6 +562,36 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 	}
 	/**
+	 * Removes specified {@link Path}s from list.
+	 * @param remove the {@link Path}s
+	 * @param recursive whether should also remove subfiles or -directories
+	 * @param relative whether specified paths are relative
+	 */
+	public void remove(Collection<Path> remove, boolean recursive, boolean relative){
+		if(!recursive)
+			removeAll(remove);
+		else{
+			for(Iterator<Path> i = iterator(); i.hasNext(); ){
+				
+				Path path = i.next();
+				
+				for(Iterator<Path> j = remove.iterator(); j.hasNext(); ){
+					
+					Path removeP = relative ? getDirectory().append(j.next()) : j.next();
+					
+					if(path.equals(removeP))
+						i.remove();
+					else if(path.isInDirectory(removeP))
+						i.remove();
+					else
+						;
+					
+				}
+			}
+				
+		}
+	}
+	/**
 	 * Saves this to a JSON file. Will be in in the base directory specified by {@link #getDirectory()} with the file name specified by {@link #JSON_FILE_NAME}.<br>
 	 * If {@link #jsonOnly} is set, there will be no save.
 	 */
@@ -540,11 +626,14 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 		lastListDate = null;
 
+		symlinks = new ArrayList<>();
+		
 		if(!jsonOnly){
 			listDate = Calendar.getInstance();
 
 			add(getDirectory());
 		}
+
 	}
 	/**
 	 * Sets up the {@link FileList} from a {@link JSONObject}
@@ -567,6 +656,8 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		listDate = null;
 
 		lastListDate = json.has(FileList.JSON_LAST_LIST_DATE) ? new JSONCalendar(json.getJSONObject(FileList.JSON_LAST_LIST_DATE)).getCalendar() : null;
+		
+		symlinks = new ArrayList<>();
 	}
 	/* 
 	 * (non-Javadoc)

@@ -27,18 +27,17 @@ import de.joinout.criztovyl.tools.json.creator.JSONCreator;
 import de.joinout.criztovyl.tools.json.iterator.JSONStringArrayIterator;
 
 /**
- * A class that transforms a {@link Map} to JSON.
+ * A class that transforms a {@link Map} to JSON.<br>
+ * If keys and/or values can be represented by a {@link String}, they will be stored as such.<br>
+ * If key can't be a string, the map will be split of into a key and values array where the indexes are synchronised.<br>
  * @author criztovyl
  *
  */
 public class JSONMap<K, V>{
 
 	private Map<K, V> map;
-
 	private static String KEYS = "keys";
-
 	private static String VALUES = "values";
-
 	private JSONObject json;
 
 	/**
@@ -49,31 +48,34 @@ public class JSONMap<K, V>{
 	 */
 	public JSONMap(Map<K, V> map, JSONCreator<K> keyJ, JSONCreator<V> valJ){
 
+		//Set up variables
 		this.map = map;
-
 		JSONObject json = new JSONObject();
-
 		JSONArray keys = new JSONArray();
-
 		JSONArray values = new JSONArray();
 
-		if(keyJ.keyCanBeString()){
+		//Check whether key can be string
+		if(keyJ.canBeString()){ //If so iterate over key set and put key as string.
 
 			for(K k : map.keySet())
-				json.put(keyJ.keyString(k), map.get(k));
+				//Put value also as key, if can be one
+				json.put(keyJ.string(k), valJ.canBeString() ? valJ.string(map.get(k)) : valJ.getJSON(map.get(k)));
 
 		}
-		else
+		else{ // If not, iterate and put the JSON-representation.
 
 			for(K k : map.keySet()){
 
 				keys.put(keyJ.getJSON(k));
-				values.put(valJ.getJSON(map.get(k)));
+				
+				//If value can be string, put as such
+				values.put(valJ.canBeString() ? valJ.string(map.get(k)) : valJ.getJSON(map.get(k)));
 
 			}
 
-		json.put(KEYS, keys);
-		json.put(VALUES, values);
+			json.put(KEYS, keys);
+			json.put(VALUES, values);
+		}
 
 		this.json = json;
 	}
@@ -86,24 +88,31 @@ public class JSONMap<K, V>{
 	 */
 	public JSONMap(JSONObject json, JSONCreator<K> keyJ, JSONCreator<V> valJ){
 
+		//Set up variables
 		this.json = json;
-
 		map = new HashMap<>();
 
-		if(keyJ.keyCanBeString()){
+		//Check whether key can be string
+		if(keyJ.canBeString()){ //If so, add as string
 
-			for(String key : new JSONStringArrayIterator(json.names()))
-				map.put(keyJ.fromKeyString(key), valJ.fromJSON(json.getJSONObject(key)));
+			//Iterate over map names.
+			//If map is empty, names will be null so create an empty array if names are null.
+			for(String key : new JSONStringArrayIterator(json.names() == null ? new JSONArray() : json.names()))
+				
+				//If value also can be a string, but as one
+				map.put(keyJ.fromString(key), valJ.canBeString() ? valJ.fromString(json.getString(key)) : valJ.fromJSON(json.getJSONObject(key)));
 		}
-		else{
+		else{ //If not, put the JSON-representation
 
+			//Set up arrays of keys and values
 			JSONArray keys = json.getJSONArray(KEYS);
-
 			JSONArray values = json.getJSONArray(VALUES);
 
-			for(int i = 0; i < keys.length(); i++){
-				map.put(keyJ.fromJSON(keys.getJSONObject(i)), valJ.fromJSON(values.getJSONObject(i)));
-			}
+			//Iterate over key array and take values from the arrays
+			for(int i = 0; i < keys.length(); i++)
+				
+				//If value can be a string, load as one
+				map.put(keyJ.fromJSON(keys.getJSONObject(i)), valJ.canBeString() ? valJ.fromString(values.getString(i)) : valJ.fromJSON(values.getJSONObject(i)));
 		}
 	}
 

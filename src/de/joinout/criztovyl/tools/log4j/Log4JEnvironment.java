@@ -17,6 +17,9 @@
  */
 package de.joinout.criztovyl.tools.log4j;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import de.joinout.criztovyl.tools.file.Path;
 
 /**
@@ -100,6 +103,14 @@ public class Log4JEnvironment {
 		if (configFile != null)
 			System.setProperty(Log4JEnvironment.SYSPROP_KEY, configFile
 					.getFile().getPath());
+		
+		Logger logger = LogManager.getLogger();
+		
+		logger.error("ERROR Test");
+		logger.warn("WARN Test");
+		logger.info("INFO Test");
+		logger.debug("DEBUG Test");
+		logger.trace("TRACE Test");
 	}
 
 	/**

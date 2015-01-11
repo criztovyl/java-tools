@@ -17,12 +17,12 @@
  */
 package de.joinout.criztovyl.tools.json;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
@@ -59,22 +59,14 @@ public class JSONFile {
 		data = new JSONObject().toString();
 
 		try {
-			final BufferedReader br = new BufferedReader(new FileReader(
-					path.getFile()));
-
-			String str = "";
-			String data = "";
-
-			while ((str = br.readLine()) != null)
-				data += str;
-
-			br.close();
+			String data = FileUtils.readFileToString(path.getFile());
 
 			if (!data.equals(""))
 				this.data = data;
 
 		} catch (final FileNotFoundException e) {
-			logger.catching(e);
+			logger.warn("File {} not found! (Maybe file wasn't created yet)", path.getPath());
+			logger.catching(Level.WARN, e);
 		} catch (final IOException e) {
 			logger.catching(e);
 		}
@@ -153,18 +145,40 @@ public class JSONFile {
 	 * Writes the JSON data to the file.
 	 */
 	public void write() {
+		
 
 		try {
+			//Create file if not exists
+			path.touch();
+			
+			//Create writer
 			final FileWriter fw = new FileWriter(path.getFile());
 
+			//Write
 			fw.write(data);
 
+			//Flush 'n' close
 			fw.flush();
 			fw.close();
 		} catch (final IOException e) {
 			logger.catching(e);
 		}
 
+	}
+	
+	public void setData(String str){
+		data = str;
+	}
+	
+	public JSONFile setData(JSONObject json){
+		data = json.toString();
+		
+		return this;
+	}
+	public JSONFile setData(JSONArray json){
+		data = json.toString();
+		
+		return this;
 	}
 
 }

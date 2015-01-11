@@ -43,6 +43,7 @@ public class DirectoryChanges {
 
 	private final FileList current, previous;
 	private Logger logger;
+	private HashSet<Path> del, changed, nevv;
 
 	/**
 	 * Creates a new instance. <code>previous</code> and <code>current</code> list are set.
@@ -54,8 +55,14 @@ public class DirectoryChanges {
 	 */
 	public DirectoryChanges(FileList current, FileList previous) {
 
+		//Setup FileLists
 		this.current = new FileList(current);
 		this.previous = new FileList(previous);
+		
+		//Remove symbolic links and their sub-directories from set
+		
+		this.current.remove(this.previous.getSymLinks(true), true, false);
+		this.previous.remove(this.current.getSymLinks(true), true, false);
 
 		logger = LogManager.getLogger();
 	}
@@ -104,21 +111,50 @@ public class DirectoryChanges {
 	}
 
 	/**
-	 * Locates all deleted files by subtract the current set from the previous.
+	 * Pass-through to {@link #getDeletedFiles(boolean)} with <code>false</code> so that there will no recalculation.
 	 * 
 	 * @return a {@link Set} of {@link Path}s
+	 * @see #getDeletedFiles(boolean)
 	 */
 	public Set<Path> getDeletedFiles() {
+		return getDeletedFiles(false);
+	}
+	/**
+	 * Locates all deleted files by subtract the current set from the previous.
+	 * @return a {@link Set} of {@link Path}s
+	 * @param forceRecalculate whether there should be a recalculation of the deleted files
+	 */
+	public Set<Path> getDeletedFiles(boolean forceRecalculate){
+		
+		if(forceRecalculate || del == null){ //(Re-)calculate if is wanted or there is no previous calculation
+			
+			// Copy previous set and replace/initiate set for deleted files
+			del = new HashSet<>(previous);
 
-		// Copy set of before
-		final HashSet<Path> del = new HashSet<>(previous);
+			//Inform if sizes above 1,000 elements
+			if(previous.size() > 1000 || current.size() > 1000){
+				logger.info("There are much files in the directories, the calculation can take a moment :)");
+				logger.debug("Sizes: Current: {}; Previous: {}", current.size(), previous.size());
+			}
+			
+			// Remove all which is in current set
+			del.removeAll(current);
 
-		// Remove all which is in current set
-		del.removeAll(current);
-
+		}
+		
+		//Return
 		return del;
 	}
 
+	/**
+	 * Pass-through to {@link #getChangedFiles(boolean)} with <code>false</code> so that there will no recalculation.
+	 * @return a {@link Set} of {@link Path}s
+	 * @see #getChangedFiles(boolean)
+	 */
+	public Set<Path> getChangedFiles() {
+		return getChangedFiles(false);
+	}
+	
 	/**
 	 * Locates all changed files, does not include new or deleted files.<br>
 	 * As first there is created/received a map with hash-strings as keys and
@@ -129,88 +165,119 @@ public class DirectoryChanges {
 	 * Only files which content changed are included.
 	 * 
 	 * @return a {@link Set} of {@link Path}s
+	 * @param forceRecalculate whether there should be a recalculation of the changed files
 	 * @see FileList#getMappedHashedModifications()
 	 */
-	public Set<Path> getChangedFiles() {
+	public Set<Path> getChangedFiles(boolean forceRecalculate){
 
-		// Get all new and deleted files, they are not included in the modified
-		// files, add them to list which files are ignored
-		final Set<Path> ignore = new HashSet<>();
-		ignore.addAll(getDeletedFiles());
-		ignore.addAll(getNewFiles());
+		if(forceRecalculate || changed == null){ //(Re-)calculate if is wanted or there is no previous calculation
 
-		if(logger.isDebugEnabled())
-			logger.debug("Files ignored: {}", new TreeSet<>(ignore));
+			// Get all new and deleted files, they are not included in the modified
+			// files, add them to list which files are ignored
+			final Set<Path> ignore = new HashSet<>();
+			ignore.addAll(getDeletedFiles());
+			ignore.addAll(getNewFiles());
 
-		// Create a map for modificated files and put modifications map from current directory
-		final HashMap<String, Path> mod = new HashMap<>(
-				current.getMappedHashedModifications(ignore));
+			if(logger.isDebugEnabled())
+				logger.debug("Files ignored: {}", new TreeSet<>(ignore));
 
-		//Receive modifications from previous directory
-		Map<String, Path> mod_p = previous.getMappedHashedModifications(ignore);
+			// Create a map for modificated files and put modifications map from current directory
+			final HashMap<String, Path> mod = new HashMap<>(
+					current.getMappedHashedModifications(ignore));
 
-		//Intersect map keys
-		Set<String> intersection = new HashSet<>(mod.keySet());
-		intersection.retainAll(mod_p.keySet());
+			//Receive modifications from previous directory
+			Map<String, Path> mod_p = previous.getMappedHashedModifications(ignore);
 
-		if(logger.isDebugEnabled()){
-			logger.debug("Modifications map of previous list: {}", new TreeMap<>(mod_p));
-			logger.debug("Modifications map of current list: {}", new TreeMap<>(mod));
-			logger.debug("Intersection of above: {}", intersection);
-		}
-		
-		//Merge maps
-		mod.putAll(mod_p);
+			//Intersect map keys
+			Set<String> intersection = new HashSet<>(mod.keySet());
+			intersection.retainAll(mod_p.keySet());
 
-		// Remove everything which is in both maps
-		mod.keySet().removeAll(new TreeSet<>(intersection));
-
-		//Only files which contents changed stay in map
-		//Iterate over keys
-		for(Iterator<String> i = mod.keySet().iterator(); i.hasNext(); ){
-
-			//Get path
-			Path path = mod.get(i.next());
-			
-			//Check if file has changed (may throw I/O exception)
-			try{
-				if(contentChanged(path))
-
-					//Remove if is not newer then complement file
-					if(!FileUtils.isFileNewer(path.getFile(), getComplementPath(path).getFile()))
-						i.remove();
-					else
-						;
-
-				//Has not changed, remove from map
+			if(logger.isDebugEnabled()){
+				
+				if(!(mod_p.size() > 500))
+					logger.debug("Modifications map of previous list: {}", new TreeMap<>(mod_p));
 				else
-					i.remove();
-			} catch (IOException e){ //Catch IOException, remove from map to avoid further errors
-				i.remove();
-				if(logger.isWarnEnabled())
-					logger.warn("Caught IOException while testing if file is newer: \"{}\". Removing from modifications to prevent further errors.");
-				if(logger.isErrorEnabled())
-					logger.catching(e);
+					logger.debug("Previous modification map is bigger than 500 elements, will not print out.");
+				
+				if(!(mod_p.size() > 500))
+					logger.debug("Modifications map of current list: {}", new TreeMap<>(mod));
+				else
+					logger.debug("Current modification map is bigger than 500 elements, will not print out.");
+
+				if(!(mod_p.size() > 500))
+					logger.debug("Intersection of above: {}", intersection);
+				else
+					logger.debug("Intersection set is bigger than 500 elements, will not print out.");
 			}
+
+			//Merge maps
+			mod.putAll(mod_p);
+
+			// Remove everything which is in both maps
+			mod.keySet().removeAll(new TreeSet<>(intersection));
+
+			//Only files which contents changed stay in map
+			//Iterate over keys
+			for(Iterator<String> i = mod.keySet().iterator(); i.hasNext(); ){
+
+				//Get path
+				Path path = mod.get(i.next());
+
+				//Check if file has changed (may throw I/O exception)
+				try{
+					if(contentChanged(path))
+
+						//Remove if is not newer then complement file
+						if(!FileUtils.isFileNewer(path.getFile(), getComplementPath(path).getFile()))
+							i.remove();
+						else
+							;
+
+					//Has not changed, remove from map
+					else
+						i.remove();
+				} catch (IOException e){ //Catch IOException, remove from map to avoid further errors
+					i.remove();
+					if(logger.isWarnEnabled())
+						logger.warn("Caught IOException while testing if file is newer: \"{}\". Removing from modifications to prevent further errors.", path);
+					if(logger.isDebugEnabled())
+						logger.debug(e);
+				}
+			}
+
+			//Save for reuse
+			changed = new HashSet<>(mod.values());
 		}
 
 		//Return changed files
-		return new HashSet<>(mod.values());
+		return changed;
 	}
 
 	/**
-	 * Locates all new files by subtract the previous set from the current set
-	 * 
+	 * Pass-through to {@link #getNewFiles(boolean)} with <code>false</code> so that there will no recalculation.
 	 * @return a {@link Set} of {@link Path}s
+	 * @see #getNewFiles(boolean)
 	 */
 	public Set<Path> getNewFiles() {
+		return getNewFiles(false);
+	}
+	/**
+	 * Locates all new files by subtract the previous set from the current set
+	 * @param forceRecalculate whether new files should be recalculated
+	 * @return a {@link Set} of {@link Path}s
+	 */
+	public Set<Path> getNewFiles(boolean forceRecalculate){
+		
+		if(forceRecalculate || nevv == null){ //(Re-)calculate if is wanted or there is no previous calculation
+			
+			// Initiate/Replace Set for new files with a copy of the current set
+			nevv = new HashSet<>(current);
 
-		// Copy current set
-		final HashSet<Path> nevv = new HashSet<>(current);
-
-		// Remove all what is in before-set
-		nevv.removeAll(previous);
-
+			// Remove all what is in the previous set
+			nevv.removeAll(previous);
+			
+		}
+		//Return
 		return nevv;
 	}
 	/**
