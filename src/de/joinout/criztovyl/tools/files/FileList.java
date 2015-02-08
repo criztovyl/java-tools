@@ -501,8 +501,8 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		final Calendar aCal = a.getLastListDate();
 		final Calendar bCal = b.getLastListDate();
 
-		// Return if age is equal or one calendar is null
-		if (aCal.compareTo(bCal) == 0 || aCal == null || bCal == null)
+		// Return if one calendar is null or age is equal.
+		if (bCal == null || aCal == null || aCal.compareTo(bCal) == 0)
 			return null;
 		
 

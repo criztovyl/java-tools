@@ -62,7 +62,7 @@ public class GUI {
      * Returns the shell of this GUI.
      * @return a {@link Shell}
      */
-    protected Shell getShell(){
+    public Shell getShell(){
     	return shell;
     }
 }
