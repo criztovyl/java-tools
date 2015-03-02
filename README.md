@@ -68,21 +68,21 @@ A class helping with externalized strings.
 [Top](#criztovyls_tools_collection)
 ###StringUtils
 A class that helps with string, as example joining collections.
-[1]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/CloneUtils.html
-[2]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/directory/DirectoryChanges.html
-[3]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/directory/DirectorySync.html
-[4]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/file/Path.html
-[5]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/files/FileList.html
-[6]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/files/MultiFileGrep.html
-[7]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/json/package-frame.html
-[8]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/json/JSONCalendar.html
-[9]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/json/JSONFile.html
-[10]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/json/JSONMap.html
-[11]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/json/creator/package-frame.html
-[12]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/json/iterator/package-summary.html
-[13]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/licenses/package-summary.html
-[14]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/log4j/Log4JEnvironment.html
-[15]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/streams/LineCollector.html
-[16]: http://docs.joinout.de/Tools/master/index.html?de/joinout/criztovyl/tools/strings/package-summary.html
+[1]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/CloneUtils.html
+[2]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/directory/DirectoryChanges.html
+[3]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/directory/DirectorySync.html
+[4]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/file/Path.html
+[5]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/files/FileList.html
+[6]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/files/MultiFileGrep.html
+[7]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/json/package-frame.html
+[8]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/json/JSONCalendar.html
+[9]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/json/JSONFile.html
+[10]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/json/JSONMap.html
+[11]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/json/creator/package-frame.html
+[12]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/json/iterator/package-summary.html
+[13]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/licenses/package-summary.html
+[14]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/log4j/Log4JEnvironment.html
+[15]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/streams/LineCollector.html
+[16]: http://docs.joinout.de/Tools/experimental/index.html?de/joinout/criztovyl/tools/strings/package-summary.html
 
 
