@@ -57,7 +57,7 @@ public class Path implements Comparable<Path>{
 	/**
 	 * Creates a new copy of a path
 	 * 
-	 * @param path
+	 * @param path the {@link Path}
 	 */
 	public Path(Path path) {
 
@@ -201,7 +201,7 @@ public class Path implements Comparable<Path>{
 	}
 
 	/**
-	 * Extracts the name after the last separator, e.g. /etc/alternatives ==>
+	 * Extracts the name after the last separator, e.g. /etc/alternatives ==&gt;
 	 * alternatives
 	 * 
 	 * @return the base name of this path

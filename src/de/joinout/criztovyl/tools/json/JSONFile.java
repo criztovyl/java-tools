@@ -46,9 +46,9 @@ public class JSONFile {
 	private String data;
 
 	/**
-	 * Loads JSON data from the given file
+	 * Loads JSON data from a file.
 	 * 
-	 * @param path
+	 * @param path the file path.
 	 */
 	public JSONFile(Path path) {
 

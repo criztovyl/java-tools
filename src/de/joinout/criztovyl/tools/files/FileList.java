@@ -169,10 +169,10 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 		this(directory, jsonOnly, "");
 	}
 	/**
-	 * Creates a new {@link FileList} upon the given {@link Path}. Defines a regular exception for excluding files.
+	 * Creates a new {@link FileList} upon the given {@link Path}. Defines a regular expression for excluding files.
 	 * @param directory the path
 	 * @param ignoreRegex the regular exception
-	 * @throws IOException if an I/O error occurs in #setupVars(Path, String, boolean)
+	 * @throws IOException if an I/O error occurs in {@link #setupVars(Path, String, boolean)}
 	 */
 	public FileList(Path directory, String ignoreRegex) throws IOException{
 		this(directory, false, ignoreRegex);
@@ -182,6 +182,7 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 	 * 
 	 * @param directory the {@link Path}.
 	 * @param jsonOnly whether should load from {@link JSONObject}
+	 * 	 * @param ignoreRegex the regular expression
 	 * @throws IOException if an I/O error occurs in #setupVars(Path, String, boolean)
 	 */
 	public FileList(Path directory, boolean jsonOnly, String ignoreRegex) throws IOException {
@@ -636,8 +637,8 @@ public class FileList extends AbstractCollection<Path> implements Set<Path>{
 
 	}
 	/**
-	 * Sets up the {@link FileList} from a {@link JSONObject}
-	 * @param json
+	 * Sets up the {@link FileList} from JSON data.
+	 * @param json the JSON data
 	 */
 	private void setupVars(JSONObject json){
 

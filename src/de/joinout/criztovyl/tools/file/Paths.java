@@ -33,7 +33,7 @@ public class Paths {
 	 * Creates a "dot dir" for the given name
 	 * (A dot dir is a hidden configuration directory in the user's home directory)
 	 * @param name
-	 * @return
+	 * @return a {@link Path}.
 	 */
 	public static Path dotDir(String name){
 		return HOME.append("." + name);

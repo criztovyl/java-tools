@@ -85,7 +85,7 @@ public class DirectoryChanges {
 	 *            the older directory
 	 * @param newer
 	 *            the newer directory
-	 * @throws IOException 
+	 * @throws IOException If an I/O error occurs when creating {@link FileList} by {@link FileList#FileList(Path, boolean)}
 	 */
 	public DirectoryChanges(Path older, Path newer) throws IOException {
 		this(new FileList(newer, false).relative(), new FileList(older, false).relative());
@@ -96,7 +96,7 @@ public class DirectoryChanges {
 	 * @param current the current directory
 	 * @param previous the previous directory
 	 * @param ignoreRegex the regular exception for excluding files.
-	 * @throws IOException 
+	 * @throws IOException If there is an I/O Exception in {@link FileList#FileList(Path, String)}
 	 */
 	public DirectoryChanges(Path current, Path previous, String ignoreRegex) throws IOException {
 		this(new FileList(current, ignoreRegex).relative(), new FileList(previous, ignoreRegex).relative());

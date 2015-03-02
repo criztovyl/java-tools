@@ -35,6 +35,7 @@ public class Connector<C> {
 	
 	/**
 	 * Creates a new instance
+	 * @param creator the creator.
 	 */
 	public Connector(JSONCreator<C> creator){
 		
@@ -105,7 +106,7 @@ public class Connector<C> {
 	 * Adds a one-way connection between one and some other objects.<br>
 	 * Objects are given as {@link Pair}s of the object and an ID.
 	 * @param x one object, as a {@link Pair} 
-	 * @param y
+	 * @param y another object, as a {@link Pair}
 	 */
 	public void addConnection(Pair<C, Integer> x, Pair<C, Integer>[] y){
 		
@@ -134,8 +135,8 @@ public class Connector<C> {
 	 * Adds a new connection between the two objects and defines the IDs.<br>
 	 * More see {@link #addConnection(Object, int, Object, int)}.<br>
 	 * Objects are given as {@link Pair}s of the object and an ID.
-	 * @param x
-	 * @param y
+	 * @param x an object, as a {@link Pair}
+	 * @param y another object, as a {@link Pair}
 	 */
 	public void addConnection(Pair<C, Integer> x, Pair<C, Integer> y){
 		
@@ -196,8 +197,8 @@ public class Connector<C> {
 	 * Adds a bidirectional connection between one and some other objects and sets IDs.<br>
 	 * More see {@link #addBidirectionalConnection(Object, int, Object, int)}
 	 * Objects are given as {@link Pair}s of the object and an ID.
-	 * @param x
-	 * @param y
+	 * @param x an object, as a {@link Pair}
+	 * @param y another object, as a {@link Pair}
 	 */
 	public void addBidirectionalConnection(Pair<C, Integer> x, Pair<C, Integer>[] y){
 

@@ -41,10 +41,12 @@ public class LibraryLicenses extends HashMap<String, LibraryLicense>{
 
 	/**
 	 * Names format for {@link #names(int)}
+	 * TODO: Rename to FORMAT_NAME
 	 */
 	public static final int F_NAMES = 0;
 	/**
 	 * Tiny format for {@link #names(int)}
+	 * TODO: Rename to FORMAT_TINY
 	 */
 	public static final int F_TINY = 1;
 	private HashMap<String, String> aliases;
@@ -96,7 +98,7 @@ public class LibraryLicenses extends HashMap<String, LibraryLicense>{
 	 * <li>Names: {@link #F_NAMES} ({@link LibraryLicense#getLibraryName()})</li>
 	 * <li>Tiny: {@link #F_TINY} ({@link LibraryLicense#getTiny()})</li>
 	 * </ul>
-	 * @param format
+	 * @param format the names format
 	 * @return a {@link Set}
 	 */
 	public Set<String> names(int format){

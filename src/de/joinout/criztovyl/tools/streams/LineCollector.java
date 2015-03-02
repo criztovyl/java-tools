@@ -28,7 +28,7 @@ import de.joinout.criztovyl.tools.strings.StringUtils;
 
 /**
  * Collects all lines from a input and offers them in different formats.<br>
- * <table>
+ * <table summary="">
  * <tr><td>
  * Current formats
  * <ul>

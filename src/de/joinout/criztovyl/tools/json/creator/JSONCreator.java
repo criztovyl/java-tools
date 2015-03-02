@@ -47,7 +47,8 @@ public interface JSONCreator<T> extends JSONable<T>{
 	public boolean canBeString();
 	
 	/**
-	 * 
+	 * Creates a {@link String} out of an object. 
+	 * @param t the object that should be transformed into a {@link String}.
 	 * @return A {@link String} or <code>null</code> when {@link #canBeString()} is <code>false</code>.
 	 */
 	public String string(T t);

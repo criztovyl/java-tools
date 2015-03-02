@@ -46,7 +46,7 @@ public abstract class JSONArrayIterator<T> implements Iterator<T>, Iterable<T> {
 	/**
 	 * Creates a new iterator on the given JSON array
 	 * 
-	 * @param array
+	 * @param array the {@link JSONArray}
 	 */
 	public JSONArrayIterator(JSONArray array) {
 		this.array = array;
