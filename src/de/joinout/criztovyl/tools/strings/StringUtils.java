@@ -60,6 +60,10 @@ public class StringUtils {
 		 this.strings = new ArrayList<>(Arrays.asList(strings));
 		 string = "";
 	}
+	public StringUtils(){
+		string = "";
+		strings = new ArrayList<>();
+	}
 
 	/**
 	 * Transforms an {@link String} {@link Collection} to an single string and optional break after each
@@ -67,8 +71,8 @@ public class StringUtils {
 	 * @param strings the {@link Collection}
 	 * @param attachLineBreaks whether should attach line break to each element
 	 * @return a {@link String}
-	 * @deprecated Replaced by constructor {@link #StringUtils(Collection, boolean)}. Get string with
-	 * {@link #getString()}.
+	 * @deprecated Replaced by constructor {@link #StringUtils(Collection)} and {@link #join(int)} with 
+	 * {@link #STYLE_NEWLINE}. Get string with {@link #getString()}.
 	 */
 	@Deprecated
 	public static String fromStringCollection(Collection<String> strings, boolean attachLineBreaks){
@@ -88,11 +92,17 @@ public class StringUtils {
 		return fromStringCollection(strings, false);
 	}
 	/**
-	 * @return the string or an empty String if there is a collection only
+	 * The string.
+	 * @return a {@link String}. Maybe empty if there is a collection only.
 	 */
 	public String getString() {
 		return string;
 	}
+	
+	/**
+	 * The strings.
+	 * @return a {@link Collection}. Maybe empty if there is a string only.
+	 */
 	public Collection<String> getCollection(){
 		return strings;
 	}
@@ -111,7 +121,7 @@ public class StringUtils {
 	 * <li>{@link #STYLE_KOMMA_AND}: joins by "," and last element by "and"</li>
 	 * <li>{@link #STYLE_NEWLINE}: joins elements by newlines (defined by {@link #newline()})</li>
 	 * </ul>
-	 * @param style the style (TODO: custom styles by objects)
+	 * @param style the style (TODO: custom styles by objects [lambda?])
 	 * @return the joined {@link String} or an empty one, if the style is unknown.
 	 */
 	public String join(int style){
@@ -147,18 +157,18 @@ public class StringUtils {
 		String string = "";
 		if(!strings.isEmpty()){
 
-			// Remove last
-			String last = strings.remove(strings.size()-1);
+			// Get last
+			String last = strings.get(strings.size()-1);
 
 			// If only last element, set string to last.
-			if(strings.size() == 0)
+			if(strings.size() == 1)
 				string += last;
 			/* If more elements, iterate over list and add each element, suffixed by the separator, to
 			 * string. After iteration replace last separator with the special last separator and append
 			 * last element removed above.
 			 */
 			else{
-				for(String related : strings)
+				for(String related : strings.subList(0, strings.size()-1))
 					string += related + separator;
 				string = specialSeparator.equals("") ? string += last : string.replaceAll(separator + "$", specialSeparator + last);
 			}
@@ -166,19 +176,57 @@ public class StringUtils {
 		return string;
 	}
 	
+	/**
+	 * Pops a string from the strings collection.
+	 * @return a {@link String} or an empty string ("") if no strings available.
+	 */
+	public String pop(){
+		return strings.isEmpty() ? "" : strings.remove(strings.size()-1);
+	}
+	
+	/**
+	 * Prefixes each string from the collection
+	 * @param prefix the prefix
+	 * @return this, for chaining.
+	 */
 	public StringUtils prefix(String prefix){
 		return each("%2$s%1$s", prefix);
 	}
 	
 	/**
 	 * Sets the String collection.
-	 * @param collection
+	 * @param collection the {@link Collection}
+	 * @return this, for chaining.
 	 */
 	private StringUtils setCollection(Collection<String> collection){
 		this.strings = new ArrayList<>(collection);
 		
 		return this;
 	}
+	
+	/**
+	 * Shifts a string
+	 * @return a String or an empty string ("") if no string is available
+	 */
+	public String shift(){
+		return strings.size() >= 1 ? strings.remove(0) : "";
+	}
+	/**
+	 * Splits a string by the given regular expression.<br>
+	 * Refer to {@link String#split(String)}.
+	 * @param regex the regular expression
+	 * @return this, for chaining.
+	 */
+	public StringUtils split(String regex){
+		this.strings = new ArrayList<>(Arrays.asList(this.string.split(regex)));
+		return this;
+	}
+	
+	/**
+	 * Suffixes each string.
+	 * @param suffix the suffix
+	 * @return this, for chaining.
+	 */
 	public StringUtils suffix(String suffix){
 		return each("%s%s", suffix);
 	}
@@ -236,8 +284,8 @@ public class StringUtils {
 	 * @param separator the separator
 	 * @param lastSeparator the special last separator
 	 * @return a {@link String}
-	 * @deprecated Replaced by constructor {@link StringUtils#StringUtils(Collection, String, String)}. 
-	 * Get string with {@link #getString()}.
+	 * @deprecated Replaced by constructor {@link StringUtils#StringUtils(Collection)} and
+	 * {@link #join(String, String)}. Get string with {@link #getString()}.
 	 */	
 	@Deprecated
 	public static String joinCollection(Collection<String> stringsC, String separator, String lastSeparator){
@@ -307,10 +355,12 @@ public class StringUtils {
 	}
 	/**
 	 * Splits at newline, prefixes and joins by newline
-	 * @param lines
-	 * @param newline
-	 * @param prefix
+	 * @param lines the string to split
+	 * @param newline the string to split by
+	 * @param prefix the prefix string
 	 * @return a {@link String}
+	 * @deprecated Replaced by {@link #StringUtils(String)}, {@link #split(String)} and 
+	 * {@link #join(String)}.
 	 */
 	@Deprecated
 	public static String prefixLines(String lines, String newline, String prefix){
@@ -324,7 +374,8 @@ public class StringUtils {
 	 * Splits at newline (defined by {@link #newline()}), prefixes and joins by newline.
 	 * @param lines the lines (in one string)
 	 * @param prefix the prefix
-	 * @return
+	 * @return a {@link String}.
+	 * @deprecated See {@link #prefixLines(String, String, String)}.
 	 */
 	@Deprecated
 	public static String prefixLines(String lines, String prefix){

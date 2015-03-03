@@ -83,8 +83,13 @@ public class LibraryLicense extends License{
 	 * @return a {@link String}
 	 */
 	public String getTiny(){
-		String usage = StringUtils.joinCollection(sub.names(LibraryLicenses.F_TINY));
-		return String.format("%s (%s License)%s", getLibraryName(), getName(), usage.equals("") ? "" : " [Using " + usage + "]");
+		String usage = new StringUtils(sub.names(LibraryLicenses.F_TINY)).
+				join(StringUtils.STYLE_KOMMA_AND);
+		
+		return String.format("%s (%s License)%s", 
+				getLibraryName(), 
+				getName(), 
+				usage.equals("") ? "" : " [Using " + usage + "]");
 	}
 	/**
 	 * Pass-through to {@link License#getShort(String, String, String)} with library name, years and author.
@@ -92,7 +97,9 @@ public class LibraryLicense extends License{
 	 * @return a {@link String}
 	 */
 	public String getShort(){
-		return String.format("%s%n\tUsing %s.", super.getShort(getLibraryName(), getYears(), getAuthor()), StringUtils.joinCollection(sub.names(LibraryLicenses.F_TINY)));
+		return String.format("%s%n\tUsing %s.", 
+				super.getShort(getLibraryName(), getYears(), getAuthor()),
+				new StringUtils(sub.names(LibraryLicenses.F_TINY)).join(StringUtils.STYLE_KOMMA_AND));
 	}
 	/**
 	 * Pass-through to {@link License#getHeader(String, String, String)} with library name, years and author.
@@ -107,7 +114,9 @@ public class LibraryLicense extends License{
 	 * @see de.joinout.criztovyl.tools.licenses.License#getLicenseText()
 	 */
 	public String getText(){
-		return String.format("%s%n\tThe following Libraries where also used: %s.", super.getText(), StringUtils.joinCollection(sub.names()));
+		return String.format("%s%n\tThe following Libraries where also used: %s.", 
+				super.getText(), 
+				new StringUtils(sub.names()).join(StringUtils.STYLE_KOMMA_AND));
 	}
 	/**
 	 * Adds sub-libraries.

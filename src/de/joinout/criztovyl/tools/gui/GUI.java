@@ -7,29 +7,29 @@ import org.eclipse.swt.widgets.Shell;
 /**
  * Represents a simple SWT GUI
  * @author criztovyl
- *
  */
 public class GUI {
 	
     private Shell shell;
     
     private Logger logger;
-    
+  
     /**
-     * Creates a Shell on the given display.
-     */
-    public GUI(Display display){
-    	
-    	logger = LogManager.getLogger();
-        shell = new Shell(display);        
-
-    }
-    /**
-     * Creates a Shell on the default display.
+     * Creates a new GUI.<br>
+     * The Shell will be created on the default display.
      * @see Display#getDefault()
      */
     public GUI(){
-    	this(Display.getDefault());
+    	this(new Shell(Display.getDefault()));
+    }
+    /**
+     * Creates a new GUI.<br>
+     * Takes a shell.
+     * @param the shell.
+     */
+    public GUI(Shell shell){
+    	logger = LogManager.getLogger();
+    	this.shell = shell;
     }
     /**
      * Starts the GUI

@@ -18,40 +18,60 @@
 package de.joinout.criztovyl.tools.gui;
 
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Scrollable;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  * @author criztovyl
- *
+ * 
  */
 public class BetterGUI extends GUI{
 
 	private Control last;
+	private Scrollable inside;
 
 	private boolean nextBreak;
 	private boolean stdPack;
 
 	/**
 	 * Creates a new instance.<br>
-	 * Pass-through to {@link #BetterGUI(Display, boolean)} with <code>null</code> and <code>true</code>.
+	 * Controls will be packed by default and new shell will be created on
+	 * {@link Display#getDefault()}.<br>
+	 * To change use one of the following:
+	 * <ul>
+	 * <li>{@link #BetterGUI(boolean)} for packing</li>
+	 * <li>{@link #BetterGUI(Display)} for display</li>
+	 * <li>{@link #BetterGUI(Shell)} for shell</li>
+	 * <li>{@link #BetterGUI(Display, boolean)} for display and packing</li>
+	 * <li>{@link #BetterGUI(Shell, boolean)} for shell and packing</li>
+	 * </ul>
 	 */
 	public BetterGUI(){
-		this(null, true);
+		this(Display.getDefault(), true);
 	}
 	
 	/**
 	 * Creates a new instance.<br>
-	 * Pass-through to {@link #BetterGUI(Display, boolean)} with <code>null</code> and <code>stdPack</code>.
+	 * A new shell will be created on {@link Display#getDefault()}.<br>
+	 * To change use {@link #BetterGUI(Display, boolean)} or {@link #BetterGUI(Shell, boolean)}
 	 * @param stdPack whether controls should be packed by default
 	 */
 	public BetterGUI(boolean stdPack){
-		this(null, stdPack);
+		this(Display.getDefault(), stdPack);
 	}
 	
 	/**
-	 * Creates a new instance with a specified display.
-	 * Pass-through to {@link #BetterGUI(Display, boolean)} with <code>display</code> and <code>true</code>.
+	 * Creates a new instance.<br>
+	 * A new shell will be created on specified display and controls will be packed by default.<br>
+	 * To change use one of the following:
+	 * <ul>
+	 * <li>{@link #BetterGUI(boolean)} for packing</li>
+	 * <li>{@link #BetterGUI(Shell)} for shell</li>
+	 * <li>{@link #BetterGUI(Shell, boolean)} for shell and packing</li>
+	 * </ul>
 	 * @param display the display
 	 * 
 	 */
@@ -60,20 +80,40 @@ public class BetterGUI extends GUI{
 	}
 	
 	/**
-	 * Creates a new instance with a specified display.
-	 * Pass-through to {@link #BetterGUI(Display, boolean)} with <code>display</code> and <code>true</code>.
+	 * Creates a new instance.<br>
+	 * Specified shell will be used.<br>
+	 * Controls are packed by default.<br>
+	 * To change use {@link #BetterGUI(Shell, boolean)}.
+	 * @param shell the shell
+	 */
+	public BetterGUI(Shell shell){
+		this(shell, true);
+	}
+	
+	/**
+	 * Creates a new instance.<br>
+	 * A new shell will be created on the specified display.<br>
+	 * To change use {@link #BetterGUI(Shell, boolean)}.
 	 * @param display the display
-	 * 
+	 * @param stdPack whether controls should be packed by default.
 	 */
 	public BetterGUI(Display display, boolean stdPack){
+		this(new Shell(display), stdPack);
+	}
+	/**
+	 * Creates a new instance.
+	 * @param shell the shell to use
+	 * @param stdPack whether controls should be packed by default.
+	 */
+	public BetterGUI(Shell shell, boolean stdPack){
+		super(shell);
 		
-		super(display);
-
 		//Initialise
 		nextBreak = false;
 		
 		//Set pack
 		this.stdPack = stdPack;
+		
 	}
 	
 	/**
@@ -92,8 +132,8 @@ public class BetterGUI extends GUI{
 	public void left(Control control, boolean pack){
 
 		control.setLocation(
-				getLast().getBounds().x - control.getBounds().width,
-				getLast().getBounds().y);
+				getLastBounds().x - control.getBounds().width,
+				getLastBounds().y);
 
 		last_n_pack(control, pack);
 	}
@@ -114,8 +154,8 @@ public class BetterGUI extends GUI{
 	public void right(Control control, boolean pack){
 
 		control.setLocation(
-				getLast().getBounds().x + getLast().getBounds().width,
-				getLast().getBounds().y);
+				getLastBounds().x + getLastBounds().width,
+				getLastBounds().y);
 
 		last_n_pack(control, pack);
 	}
@@ -136,8 +176,8 @@ public class BetterGUI extends GUI{
 	public void above(Control control, boolean pack){
 
 		control.setLocation(
-				getLast().getBounds().x,
-				getLast().getBounds().y - control.getBounds().height);
+				getLastBounds().x,
+				getLastBounds().y - control.getBounds().height);
 
 		last_n_pack(control, pack);
 	}
@@ -158,8 +198,8 @@ public class BetterGUI extends GUI{
 	public void below(Control control, boolean pack){
 
 		control.setLocation(
-				getLast().getBounds().x,
-				getLast().getBounds().y + getLast().getBounds().height);
+				getLastBounds().x,
+				getLastBounds().y + getLastBounds().height);
 
 		last_n_pack(control, pack);
 	}
@@ -174,9 +214,9 @@ public class BetterGUI extends GUI{
 	
 	/**
 	 * Resizes the width of the last control.<br>
-	 * Can be resize by a factor if <code>relative</code> is true.
+	 * Can be resized by a factor if <code>relative</code> is true.
 	 * @param width the width or factor
-	 * @param relative
+	 * @param relative whether use width as factor or not.
 	 */
 	public void resizeWidh(double width, boolean relative){
 		if(relative)
@@ -195,9 +235,9 @@ public class BetterGUI extends GUI{
 	
 	/**
 	 * Resizes the height of the last control.<br>
-	 * Can be resize by a factor if <code>relative</code> is true.
+	 * Can be resized by a factor if <code>relative</code> is true.
 	 * @param height the height  or factor
-	 * @param relative
+	 * @param relative whether use width as factor or not.
 	 */
 	public void resizeHeight(double height, boolean relative){
 		if(relative)
@@ -207,7 +247,7 @@ public class BetterGUI extends GUI{
 			resizeHeight((int) height);
 	}
 	/**
-	 * Resizes the last control by a {@link Point}'s x & y coordinate.<br>
+	 * Resizes the last control by a {@link Point}'s x &amp; y coordinate.<br>
 	 * x is width and y is height.
 	 * @param size the point
 	 */
@@ -216,11 +256,12 @@ public class BetterGUI extends GUI{
 	}
 	
 	/**
-	 * Resizes the last control by a x & y coordinate.<br>
+	 * Resizes the last control by a x &amp; y coordinate.<br>
 	 * x is width and y height.<br>
 	 * If relative is true, last control will be resized by multiply old and new x/y.
-	 * @param size
-	 * @param relative
+	 * @param x with/width factor.
+	 * @param y height/height factor
+	 * @param relative whether use width/height as factor or not.
 	 */
 	public void resize(double x, double y, boolean relative){
 		
@@ -263,8 +304,8 @@ public class BetterGUI extends GUI{
 	public void inside(Control control, boolean pack){
 
 		control.setLocation(
-				getShell().getShell().getClientArea().x, 
-				getShell().getShell().getClientArea().y);
+				getInside().getClientArea().x, 
+				getInside().getClientArea().y);
 
 		last_n_pack(control, pack);
 	}
@@ -278,22 +319,22 @@ public class BetterGUI extends GUI{
 	}
 
 	/**
-	 * Places a control inside the previous control and set whether control should be "packed" ({@link Control#pack()}).
+	 * Places a control below the previous control and set whether control should be "packed" ({@link Control#pack()}).
 	 * @param control the control to place
 	 * @param pack whether control should be packed
 	 */
 	public void belowRow(Control control, boolean pack) {
 
 		control.setLocation(
-				getShell().getShell().getClientArea().x, 
-				getLast().getBounds().y + getLast().getBounds().height);
+				getInside().getClientArea().x, 
+				getLastBounds().y + getLastBounds().height);
 
 		last_n_pack(control, pack);
 
 	}
 
 	/**
-	 * Places a control below the previous control.
+	 * Places a control into row above the previous control.
 	 * @param control the control to place
 	 */
 	public void aboveRow(Control control){
@@ -301,15 +342,15 @@ public class BetterGUI extends GUI{
 	}
 
 	/**
-	 * Places a control inside the previous control and set whether control should be "packed" ({@link Control#pack()}).
+	 * Places a control into row above the previous control and set whether control should be "packed" ({@link Control#pack()}).
 	 * @param control the control to place
 	 * @param pack whether control should be packed
 	 */
 	public void aboveRow(Control control, boolean pack){
 
 		control.setLocation(
-				getShell().getClientArea().x, 
-				getLast().getBounds().y - control.getBounds().height);
+				getInside().getClientArea().x, 
+				getLastBounds().y - control.getBounds().height);
 
 		last_n_pack(control, pack);
 	}
@@ -317,7 +358,9 @@ public class BetterGUI extends GUI{
 	/**
 	 * Places a control below the previous control.
 	 * @param control the control to place
+	 * @deprecated Use {@link #add(Control)}.
 	 */
+	@Deprecated
 	public void begin(Control control){
 		begin(control, stdPack);
 	}
@@ -326,7 +369,9 @@ public class BetterGUI extends GUI{
 	 * Places a control inside the previous control and set whether control should be "packed" ({@link Control#pack()}).
 	 * @param control the control to place
 	 * @param pack whether control should be packed
+	 * @deprecated Use {@link #add(Control, boolean)}.
 	 */
+	@Deprecated
 	public void begin(Control control, boolean pack){
 
 		control.setLocation(0, 0);
@@ -335,7 +380,7 @@ public class BetterGUI extends GUI{
 	}
 
 	/**
-	 * Places a control below the previous control.
+	 * Places a control right to the previous control.
 	 * @param control the control to place
 	 */
 	public void add(Control control){
@@ -343,7 +388,7 @@ public class BetterGUI extends GUI{
 	}
 
 	/**
-	 * Places a control inside the previous control and set whether control should be "packed" ({@link Control#pack()}).
+	 * Places a control right to the previous control and set whether control should be "packed" ({@link Control#pack()}).
 	 * @param control the control to place
 	 * @param pack whether control should be packed
 	 */
@@ -365,7 +410,16 @@ public class BetterGUI extends GUI{
 	}
 	
 	/**
-	 * The last control.
+	 * The {@link Scrollable} to place inside.
+	 * @return a {@link Scrollable}, if <code>inside</code> wasn't set yet, the Shell will be used.
+	 */
+	private Scrollable getInside(){
+		return inside == null ? getShell() : inside;
+	}
+	
+	/**
+	 * The last control.<br>
+	 * Is <code>null</code> until no control added.
 	 * @return a {@link Control}
 	 */
 	public Control getLast(){
@@ -374,10 +428,27 @@ public class BetterGUI extends GUI{
 	
 	/**
 	 * Sets the last used {@link Control}
-	 * @param control
+	 * @param control the {@link Control}
 	 */
 	private void setLast(Control control){
+		
+		//Set last
 		last = control;
+		
+		//Set inside too, if was Scrollable
+		if(control instanceof Scrollable)
+			inside = (Scrollable) control;
+	}
+	
+	/**
+	 * The last {@link Control}'s bounds {@link Rectangle}.<br>
+	 * As last can be <code>null</code> but every control added, also the first, relies on 
+	 * {@link Control#getBounds()}, its needed, that you can get bounds also if last control is
+	 * <code>null</code>, without doing a redundant <code>null</code>-Check.
+	 * @return a {@link Rectangle}, if <code>last</code> is <code>null</code> all values will be 0.
+	 */
+	private Rectangle getLastBounds(){
+		return getLast() == null ? new Rectangle(0, 0, 0, 0) : getLast().getBounds();
 	}
 	
 	/**
