@@ -463,4 +463,28 @@ public class BetterGUI extends GUI{
 		if(pack)
 			control.pack();
 	}
+	/**
+	 * Places a control below a specified control.
+	 * @param control the control
+	 * @param reference the reference
+	 */
+	public void below(Control control, Control reference){
+		below(control, reference, stdPack);
+	}
+	/**
+	 * Places a control below a specified control.
+	 * @param control the control
+	 * @param reference the reference
+	 * @param pack whether the Control should be packed
+	 */
+	public void below(Control control, Control reference, boolean pack){
+		
+		Rectangle refBounds = reference.getBounds();
+		
+		control.setLocation(
+				refBounds.x,
+				refBounds.y + refBounds.height);
+		
+		last_n_pack(control, pack);
+	}
 }
