@@ -80,6 +80,8 @@ public class Log4JEnvironment {
 	public Log4JEnvironment(Path configDir, String silentName,
 			String verboseName, String switchName, String noCfgName) {
 
+        if(!configDir.getFile().exists()) configDir.getFile().mkdirs();
+
 		// Set up paths
 		silent = configDir.append(silentName);
 		verbose = configDir.append(verboseName);
